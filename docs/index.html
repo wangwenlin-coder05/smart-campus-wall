@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus Wall · AI 校园服务平台 Demo</title>
+  <meta name="description" content="智慧校园墙 · AI 校园服务——大模型对话助手 + 百度 OCR + WebSocket 实时消息">
+  <style>
+    :root{
+      --brand:#6DB33F; --brand2:#0a66c2; --ink:#1b2430; --muted:#64748b;
+      --card:#fff; --bg:#f6f8fb; --line:#e6ecf3; --gold:#d97706;
+    }
+    *{box-sizing:border-box;margin:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+    a{text-decoration:none;color:inherit}
+    .wrap{max-width:960px;margin:0 auto;padding:0 24px}
+
+    header{background:linear-gradient(135deg,#14532d,#0a66c2);color:#fff;padding:56px 0 40px;position:relative;overflow:hidden}
+    header::after{content:"";position:absolute;right:-80px;top:-80px;width:280px;height:280px;background:rgba(255,255,255,.08);border-radius:50%}
+    header .tag{display:inline-block;background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px;font-size:13px;letter-spacing:1px;margin-bottom:18px}
+    h1{font-size:34px;font-weight:800;letter-spacing:.5px}
+    header p.sub{margin-top:10px;font-size:17px;opacity:.92;max-width:640px}
+
+    .badges{margin-top:24px;display:flex;flex-wrap:wrap;gap:8px}
+    .badges a,.badges span{background:rgba(255,255,255,.15);padding:5px 12px;border-radius:999px;font-size:13px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin:40px 0}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 2px 8px rgba(20,83,45,.05)}
+    .card h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .card p{font-size:14px;color:var(--muted)}
+    .emoji{font-size:22px}
+
+    section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin:24px 0;box-shadow:0 2px 8px rgba(20,83,45,.04)}
+    section h2{font-size:20px;margin-bottom:16px;border-bottom:2px dashed var(--line);padding-bottom:10px}
+    .mermaid{background:#fff;border-radius:10px;padding:16px;overflow:auto}
+
+    .cta{margin:32px 0;padding:32px;text-align:center;background:linear-gradient(135deg,#14532d,#0a66c2);color:#fff;border-radius:16px}
+    .cta h2{color:#fff;border:0}
+    .btn{display:inline-block;background:#fff;color:#0a66c2;font-weight:700;padding:12px 26px;border-radius:999px;margin-top:14px}
+
+    footer{text-align:center;color:var(--muted);font-size:13px;padding:32px 0}
+    .stackify{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+    .chip{background:#eef4ff;color:#0a66c2;border:1px solid #d4e3ff;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="tag">🎓 毕业设计 · AI 校园服务平台</span>
+    <h1>智慧校园墙 · Smart Campus Wall</h1>
+    <p class="sub">面向高校学生与教职工的智能化校园综合服务平台——大模型对话助手 + AI 视觉 OCR + WebSocket 实时消息，构建有趣、好用、有温度的智慧校园数字底座。</p>
+    <div class="badges">
+      <a href="https://github.com/wangwenlin333/smart-campus-wall" target="_blank">⭐ GitHub</a>
+      <span>Java 17</span><span>Spring Boot 3</span><span>MyBatis</span><span>uni-app</span><span>LLM</span><span>WebSocket</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <div class="card"><h3><span class="emoji">🤖</span> AI 校园助手</h3><p>大模型流式问答，OpenAI 兼容协议，多模型可切换（DeepSeek / GPT）。</p></div>
+    <div class="card"><h3><span class="emoji">👁️</span> AI 视觉 OCR</h3><p>票据、失物照片文字自动识别，关键信息一键提取入库。</p></div>
+    <div class="card"><h3><span class="emoji">⚡</span> WebSocket 实时</h3><p>聊天与业务计数实时推送，即时交互体验。</p></div>
+    <div class="card"><h3><span class="emoji">🗂️</span> 业务闭环</h3><p>校园墙 / 失物招领 / 社团活动，前端 uni-app 多端发布。</p></div>
+  </div>
+
+  <section>
+    <h2>📐 系统架构</h2>
+    <div class="mermaid">
+      flowchart TB
+      Client["📱 uni-app 多端"] --> N["网关层"]
+      N --> C["Controller"]
+      C --> S["Service 业务层"]
+      S --> DB[(MySQL)]
+      S --> OSS["阿里云 OSS"]
+      S .->|"/ai/chat"| LLM["LLM 大模型"]
+      S .->|"/ocr"| OCR["百度 OCR"]
+      C --> W["WebSocket 实时"]
+    </div>
+    <div class="stackify">
+      <span class="chip">Spring Boot 3</span><span class="chip">MyBatis</span><span class="chip">MySQL 8</span><span class="chip">阿里云 OSS 分片上传</span><span class="chip">百度 OCR</span><span class="chip">LLM 大模型网关</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>✨ AI 能力</h2>
+    <p><strong>AI 校园助手</strong>：uni-app 前端通过 <code>POST /ai/chat</code> 调用，后端 <code>AiAssistantService</code> 封装统一接口，密钥集中管理于 <code>ai.assistant</code> 配置节点，模型可热切换。</p>
+    <p style="margin-top:10px"><strong>AI 视觉识别</strong>：集成 <code>com.baidu.aip.ocr.AipOcr</code>，在失物招领登记、票据图片解析中自动提取关键要素。</p>
+    <p style="margin-top:10px"><strong>实时消息</strong>：<code>ChatWebSocketHandler</code> 聊天实时推送、<code>DisputeCountWebSocketHandler</code> 争议计数实时更新。</p>
+  </section>
+
+  <div class="cta">
+    <h2>查看完整源码</h2>
+    <p style="opacity:.9;margin-top:8px">数据库 / 登录 / AI 完整功能需本地部署体验</p>
+    <a class="btn" href="https://github.com/wangwenlin333/smart-campus-wall" target="_blank">前往 GitHub →</a>
+  </div>
+</div>
+
+<footer>Smart Campus Wall · Powered by Spring Boot &amp; AI · 在线 Demo 页</footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:"neutral",fontFamily:'"Microsoft YaHei",sans-serif'});</script>
+</body>
+</html>
