@@ -1,0 +1,61 @@
+#  项目名称
+spring:
+  application:
+    name: graduation_project
+  #    配置数据库的连接信息
+  datasource:
+    url: jdbc:mysql://localhost:3306/graduation_project?serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_general_ci
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+  #文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+#    Mybatis相关配置
+mybatis:
+  configuration:
+    #    向控制台打印日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #    开启驼峰命名自动映射（create_time -> createTime）
+    map-underscore-to-camel-case: true
+  #    自定义XML 映射文件位置
+#  mapper-locations: classpath:com/wwl/mybatisquickstart/mapper/*.xml
+
+baidu:
+  ocr:
+    app-id: 123208887
+    api-key: hQybWPgsGOFPRjvrmhsRJWYK
+    secret-key: JgweZREE2h3bdETSyJ7LRdRAizQPf5iy
+
+# AI 校园助手 - OpenAI 兼容接口
+ai:
+  assistant:
+    api-key: ${AI_API_KEY:sk-f038ac4684304edc83b851a2787759a3}
+    base-url: https://api.deepseek.com/v1
+    model: deepseek-chat
+
+#阿里云OSS
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com
+    bucketName: schoolwall-wwl
+    region: cn-beijing
+    accessKeyId: LTAI5t6gQAeShMhqix5kSHjC
+    accessKeySecret: sIWmqbjWF9cG5a9H72QzF7c19y2DjU
+
+# SpringDoc 接口文档配置（Swagger UI）http://localhost:8080/swagger-ui/index.html#/
+springdoc:
+  # API 文档接口配置
+  api-docs:
+    # 是否开启 API 文档生成（true=开启，false=关闭）
+    enabled: true
+  # Swagger UI 可视化界面配置
+  swagger-ui:
+    # 是否启用 Swagger UI 界面
+    enabled: true
+    # 接口标签排序规则：alpha=按字母顺序排序
+    tags-sorter: alpha
+    # 接口操作排序规则：alpha=按字母顺序排序
+    operations-sorter: alpha

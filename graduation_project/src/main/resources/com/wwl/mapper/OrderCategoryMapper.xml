@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.OrderCategoryMapper">
+
+    <!-- 查询所有一级分类 parent_id = 0 -->
+    <select id="selectFirstCategory" resultType="com.wwl.model.entity.OrderCategory">
+        SELECT id, cat_name, parent_id
+        FROM order_category
+        WHERE parent_id = 0 AND is_deleted = 0
+    </select>
+
+    <!-- 根据父ID查询对应的二级子分类 -->
+    <select id="selectChildByParentId" resultType="com.wwl.model.entity.OrderCategory">
+        SELECT id, cat_name, parent_id
+        FROM order_category
+        WHERE parent_id = #{parentId} AND is_deleted = 0
+    </select>
+
+    <!-- 新增分类 -->
+    <insert id="insertCategory">
+        INSERT INTO order_category (cat_name, parent_id)
+        VALUES (#{catName}, #{parentId})
+    </insert>
+
+    <!-- 修改分类 -->
+    <update id="updateCategory">
+        UPDATE order_category
+        SET cat_name = #{catName},
+            parent_id = #{parentId}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除分类（软删除） -->
+    <update id="deleteCategory">
+        UPDATE order_category SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

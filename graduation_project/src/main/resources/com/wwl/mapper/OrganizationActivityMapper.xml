@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.OrganizationActivityMapper">
+
+    <resultMap id="ActivityResultMap" type="com.wwl.model.entity.OrganizationActivity">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="category" property="category"/>
+        <result column="tag_id" property="tagId"/>
+        <result column="tag_name" property="tagName"/>
+        <result column="activity_time" property="activityTime"/>
+        <result column="address" property="address"/>
+        <result column="max_people" property="maxPeople"/>
+        <result column="join_num" property="joinNum"/>
+        <result column="gender_limit" property="genderLimit"/>
+        <result column="fee_type" property="feeType"/>
+        <result column="deposit_required" property="depositRequired"/>
+        <result column="deposit_amount" property="depositAmount"/>
+        <result column="host_desc" property="hostDesc"/>
+        <result column="poster_img" property="posterImg"/>
+        <result column="brand_name" property="brandName"/>
+        <result column="brand_avatar" property="brandAvatar"/>
+        <result column="group_count" property="groupCount"/>
+        <result column="qrcode_url" property="qrcodeUrl"/>
+        <result column="creator_user_id" property="creatorUserId"/>
+        <result column="status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <resultMap id="MemberResultMap" type="com.wwl.model.entity.OrganizationActivityMember">
+        <id column="id" property="id"/>
+        <result column="activity_id" property="activityId"/>
+        <result column="user_id" property="userId"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="ActivityColumns">
+        a.id,
+        a.title,
+        a.category,
+        a.tag_id,
+        a.tag_name,
+        a.activity_time,
+        a.address,
+        a.max_people,
+        a.join_num,
+        a.gender_limit,
+        a.fee_type,
+        a.deposit_required,
+        a.deposit_amount,
+        a.host_desc,
+        a.poster_img,
+        a.brand_name,
+        a.brand_avatar,
+        a.qrcode_url,
+        a.creator_user_id,
+        a.status,
+        a.is_deleted,
+        a.create_time,
+        a.update_time
+    </sql>
+
+    <select id="selectActivityList" resultMap="ActivityResultMap">
+        SELECT
+            <include refid="ActivityColumns"/>,
+            (
+                SELECT COUNT(*)
+                FROM organization_activity c
+                WHERE (c.creator_user_id = a.creator_user_id OR c.brand_name = a.brand_name)
+                  AND c.is_deleted = 0
+            ) AS group_count
+        FROM organization_activity a
+        WHERE a.is_deleted = 0
+        <if test="status != null and status != ''">
+            AND a.status = #{status}
+        </if>
+        <if test="category != null and category != ''">
+            AND a.category = #{category}
+        </if>
+        <if test="tagId != null">
+            AND a.tag_id = #{tagId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                a.title LIKE CONCAT('%', #{keyword}, '%')
+                OR a.brand_name LIKE CONCAT('%', #{keyword}, '%')
+                OR a.address LIKE CONCAT('%', #{keyword}, '%')
+                OR a.category LIKE CONCAT('%', #{keyword}, '%')
+                OR a.tag_name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="ActivityResultMap">
+        SELECT
+            <include refid="ActivityColumns"/>,
+            (
+                SELECT COUNT(*)
+                FROM organization_activity c
+                WHERE (c.creator_user_id = a.creator_user_id OR c.brand_name = a.brand_name)
+                  AND c.is_deleted = 0
+            ) AS group_count
+        FROM organization_activity a
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+    </select>
+
+    <insert id="insertActivity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO organization_activity
+        (title, category, tag_id, tag_name, activity_time, address, max_people, join_num,
+         gender_limit, fee_type, deposit_required, deposit_amount, host_desc, poster_img,
+         brand_name, brand_avatar, group_count, qrcode_url, creator_user_id, status,
+         is_deleted, create_time, update_time)
+        VALUES
+        (#{title}, #{category}, #{tagId}, #{tagName}, #{activityTime}, #{address}, #{maxPeople}, #{joinNum},
+         #{genderLimit}, #{feeType}, #{depositRequired}, #{depositAmount}, #{hostDesc}, #{posterImg},
+         #{brandName}, #{brandAvatar}, #{groupCount}, #{qrcodeUrl}, #{creatorUserId}, #{status},
+         #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateActivity">
+        UPDATE organization_activity
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="tagId != null">tag_id = #{tagId},</if>
+            <if test="tagName != null and tagName != ''">tag_name = #{tagName},</if>
+            <if test="activityTime != null and activityTime != ''">activity_time = #{activityTime},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="maxPeople != null">max_people = #{maxPeople},</if>
+            <if test="joinNum != null">join_num = #{joinNum},</if>
+            <if test="genderLimit != null and genderLimit != ''">gender_limit = #{genderLimit},</if>
+            <if test="feeType != null and feeType != ''">fee_type = #{feeType},</if>
+            <if test="depositRequired != null">deposit_required = #{depositRequired},</if>
+            <if test="depositAmount != null">deposit_amount = #{depositAmount},</if>
+            <if test="hostDesc != null">host_desc = #{hostDesc},</if>
+            <if test="posterImg != null and posterImg != ''">poster_img = #{posterImg},</if>
+            <if test="brandName != null and brandName != ''">brand_name = #{brandName},</if>
+            <if test="brandAvatar != null and brandAvatar != ''">brand_avatar = #{brandAvatar},</if>
+            <if test="groupCount != null">group_count = #{groupCount},</if>
+            <if test="qrcodeUrl != null and qrcodeUrl != ''">qrcode_url = #{qrcodeUrl},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <select id="countByCreatorOrBrand" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM organization_activity
+        WHERE is_deleted = 0
+          AND (
+            <if test="creatorUserId != null and creatorUserId != ''">
+                creator_user_id = #{creatorUserId}
+            </if>
+            <if test="creatorUserId != null and creatorUserId != '' and brandName != null and brandName != ''">
+                OR
+            </if>
+            <if test="brandName != null and brandName != ''">
+                brand_name = #{brandName}
+            </if>
+          )
+    </select>
+
+    <update id="syncGroupCountByCreatorOrBrand">
+        UPDATE organization_activity a
+        SET a.group_count = (
+            SELECT COUNT(*)
+            FROM (
+                SELECT id
+                FROM organization_activity c
+                WHERE c.is_deleted = 0
+                  AND (
+                    <if test="creatorUserId != null and creatorUserId != ''">
+                        c.creator_user_id = #{creatorUserId}
+                    </if>
+                    <if test="creatorUserId != null and creatorUserId != '' and brandName != null and brandName != ''">
+                        OR
+                    </if>
+                    <if test="brandName != null and brandName != ''">
+                        c.brand_name = #{brandName}
+                    </if>
+                  )
+            ) matched
+        ),
+        a.update_time = NOW()
+        WHERE a.is_deleted = 0
+          AND (
+            <if test="creatorUserId != null and creatorUserId != ''">
+                a.creator_user_id = #{creatorUserId}
+            </if>
+            <if test="creatorUserId != null and creatorUserId != '' and brandName != null and brandName != ''">
+                OR
+            </if>
+            <if test="brandName != null and brandName != ''">
+                a.brand_name = #{brandName}
+            </if>
+          )
+    </update>
+
+    <insert id="insertMember" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO organization_activity_member
+        (activity_id, user_id, nickname, avatar, status, create_time, update_time)
+        VALUES
+        (#{activityId}, #{userId}, #{nickname}, #{avatar}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateMemberStatus">
+        UPDATE organization_activity_member
+        SET status = #{status},
+            update_time = NOW()
+        WHERE activity_id = #{activityId}
+          AND user_id = #{userId}
+    </update>
+
+    <select id="selectMember" resultMap="MemberResultMap">
+        SELECT *
+        FROM organization_activity_member
+        WHERE activity_id = #{activityId}
+          AND user_id = #{userId}
+    </select>
+
+    <update id="increaseJoinNum">
+        UPDATE organization_activity
+        SET join_num = join_num + 1,
+            update_time = NOW()
+        WHERE id = #{activityId}
+          AND is_deleted = 0
+          AND status = 'active'
+          AND join_num &lt; max_people
+    </update>
+
+    <update id="decreaseJoinNum">
+        UPDATE organization_activity
+        SET join_num = CASE WHEN join_num > 0 THEN join_num - 1 ELSE 0 END,
+            update_time = NOW()
+        WHERE id = #{activityId}
+          AND is_deleted = 0
+    </update>
+
+    <select id="selectCreatedByUser" resultMap="ActivityResultMap">
+        SELECT
+            <include refid="ActivityColumns"/>,
+            (
+                SELECT COUNT(*)
+                FROM organization_activity c
+                WHERE (c.creator_user_id = a.creator_user_id OR c.brand_name = a.brand_name)
+                  AND c.is_deleted = 0
+            ) AS group_count
+        FROM organization_activity a
+        WHERE a.creator_user_id = #{userId}
+          AND a.is_deleted = 0
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectJoinedByUser" resultMap="ActivityResultMap">
+        SELECT
+            <include refid="ActivityColumns"/>,
+            (
+                SELECT COUNT(*)
+                FROM organization_activity c
+                WHERE (c.creator_user_id = a.creator_user_id OR c.brand_name = a.brand_name)
+                  AND c.is_deleted = 0
+            ) AS group_count
+        FROM organization_activity a
+        INNER JOIN organization_activity_member m ON a.id = m.activity_id
+        WHERE m.user_id = #{userId}
+          AND m.status = 'joined'
+          AND a.is_deleted = 0
+        ORDER BY m.create_time DESC
+    </select>
+
+    <select id="selectAvatarList" resultType="java.lang.String">
+        SELECT avatar
+        FROM organization_activity_member
+        WHERE activity_id = #{activityId}
+          AND status = 'joined'
+        ORDER BY create_time ASC
+        LIMIT 5
+    </select>
+
+    <select id="selectMembersByActivityId" resultMap="MemberResultMap">
+        SELECT *
+        FROM organization_activity_member
+        WHERE activity_id = #{activityId}
+          AND status = 'joined'
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- AI 助手：多关键词 OR 搜索（解决 "今晚有什么活动？" 整句匹配不到的问题） -->
+    <select id="selectByKeywords" resultMap="ActivityResultMap">
+        SELECT
+            <include refid="ActivityColumns"/>,
+            (
+                SELECT COUNT(*)
+                FROM organization_activity c
+                WHERE (c.creator_user_id = a.creator_user_id OR c.brand_name = a.brand_name)
+                  AND c.is_deleted = 0
+            ) AS group_count
+        FROM organization_activity a
+        WHERE a.is_deleted = 0
+          AND a.status = 'active'
+          AND (
+            <foreach collection="keywords" item="kw" separator=" OR ">
+                a.title LIKE CONCAT('%', #{kw}, '%')
+                OR a.category LIKE CONCAT('%', #{kw}, '%')
+                OR a.tag_name LIKE CONCAT('%', #{kw}, '%')
+                OR a.address LIKE CONCAT('%', #{kw}, '%')
+                OR a.host_desc LIKE CONCAT('%', #{kw}, '%')
+            </foreach>
+          )
+        ORDER BY a.create_time DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

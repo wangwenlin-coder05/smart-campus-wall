@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 绑定对应mapper接口全路径 -->
+<mapper namespace="com.wwl.mapper.UserMapper">
+
+    <!-- 新增用户 -->
+    <insert id="insertUser">
+        INSERT INTO user
+        (
+            uid,openid,phone,email,password,username,avatar,role,real_name,gender,
+            id_card,birthday,qq,wechat,alipay_account,student_id,college,major,class_name,
+            dormitory,hobby,status,last_login_time,last_login_ip
+        )
+        VALUES
+            (
+                #{uid},#{openid},#{phone},#{email},#{password},#{username},#{avatar},#{role},#{realName},#{gender},
+                #{idCard},#{birthday},#{qq},#{wechat},#{alipayAccount},#{studentId},#{college},#{major},#{className},
+                #{dormitory},#{hobby},#{status},#{lastLoginTime},#{lastLoginIp}
+            )
+    </insert>
+
+
+    <!-- 根据UID查询单个用户-->
+    <select id="selectUserByUid" resultType="com.wwl.model.entity.User">
+        SELECT * FROM user WHERE uid = #{uid} AND is_deleted = 0
+    </select>
+
+    <select id="selectIdByUid" resultType="java.lang.Long">
+        SELECT id FROM user WHERE uid = #{uid} AND is_deleted = 0 LIMIT 1
+    </select>
+
+    <select id="selectUidById" resultType="java.lang.String">
+        SELECT uid FROM user WHERE id = #{id} AND is_deleted = 0 LIMIT 1
+    </select>
+
+    <!-- 根据手机号查询用户：登录时使用 -->
+    <select id="selectUserByPhone" resultType="com.wwl.model.entity.User">
+        SELECT * FROM user WHERE phone = #{phone} AND is_deleted = 0 LIMIT 1
+    </select>
+
+    <!-- 根据不同登录方式查询用户 -->
+    <select id="selectUserByAccount" resultType="com.wwl.model.entity.User">
+        SELECT * FROM user
+        WHERE is_deleted = 0
+        <choose>
+            <when test="loginType == 'phone'">AND phone = #{account}</when>
+            <when test="loginType == 'email'">AND email = #{account}</when>
+            <when test="loginType == 'wechat'">AND wechat = #{account}</when>
+            <when test="loginType == 'alipay'">AND alipay_account = #{account}</when>
+            <otherwise>
+                AND (phone = #{account} OR email = #{account} OR wechat = #{account} OR alipay_account = #{account})
+            </otherwise>
+        </choose>
+        LIMIT 1
+    </select>
+
+    <!-- 通用多条件组合查询：全字段覆盖，任意字段精确/模糊查询，不传自动忽略 -->
+    <select id="selectUserListByCondition" resultType="com.wwl.model.entity.User">
+        SELECT * FROM user
+        <where>
+            AND is_deleted = 0
+            <if test="uid != null and uid != ''">AND uid = #{uid}</if>
+            <if test="openid != null and openid != ''">AND openid = #{openid}</if>
+            <if test="phone != null and phone != ''">AND phone = #{phone}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+            <if test="password != null and password != ''">AND password = #{password}</if>
+            <if test="username != null and username != ''">AND username LIKE CONCAT('%',#{username},'%')</if>
+            <if test="avatar != null and avatar != ''">AND avatar = #{avatar}</if>
+            <if test="role != null">AND role = #{role}</if>
+            <if test="realName != null and realName != ''">AND real_name LIKE CONCAT('%',#{realName},'%')</if>
+            <if test="gender != null">AND gender = #{gender}</if>
+            <if test="idCard != null and idCard != ''">AND id_card = #{idCard}</if>
+            <if test="birthday != null">AND birthday = #{birthday}</if>
+            <if test="qq != null and qq != ''">AND qq = #{qq}</if>
+            <if test="wechat != null and wechat != ''">AND wechat = #{wechat}</if>
+            <if test="alipayAccount != null and alipayAccount != ''">AND alipay_account = #{alipayAccount}</if>
+            <if test="studentId != null and studentId != ''">AND student_id = #{studentId}</if>
+            <if test="college != null and college != ''">AND college = #{college}</if>
+            <if test="major != null and major != ''">AND major = #{major}</if>
+            <if test="className != null and className != ''">AND class_name = #{className}</if>
+            <if test="dormitory != null and dormitory != ''">AND dormitory = #{dormitory}</if>
+            <if test="hobby != null and hobby != ''">AND hobby LIKE CONCAT('%',#{hobby},'%')</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="lastLoginIp != null and lastLoginIp != ''">AND last_login_ip = #{lastLoginIp}</if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+
+    <!-- 查询全部用户 -->
+    <select id="selectUserList" resultType="com.wwl.model.entity.User">
+        SELECT * FROM user WHERE is_deleted = 0
+    </select>
+
+
+
+    <!-- 动态修改用户信息-->
+    <!-- 完整全字段动态修改用户 -->
+    <update id="updateUser">
+        UPDATE user
+        <set>
+            <if test="openid != null">
+                openid = #{openid},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="avatar != null">
+                avatar = #{avatar},
+            </if>
+            <if test="role != null">
+                role = #{role},
+            </if>
+            <if test="realName != null and realName != ''">
+                real_name = #{realName},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="idCard != null">
+                id_card = #{idCard},
+            </if>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="qq != null">
+                qq = #{qq},
+            </if>
+            <if test="wechat != null">
+                wechat = #{wechat},
+            </if>
+            <if test="alipayAccount != null">
+                alipay_account = #{alipayAccount},
+            </if>
+            <if test="studentId != null">
+                student_id = #{studentId},
+            </if>
+            <if test="college != null and college != ''">
+                college = #{college},
+            </if>
+            <if test="major != null and major != ''">
+                major = #{major},
+            </if>
+            <if test="className != null and className != ''">
+                class_name = #{className},
+            </if>
+            <if test="dormitory != null">
+                dormitory = #{dormitory},
+            </if>
+            <if test="hobby != null">
+                hobby = #{hobby},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="lastLoginTime != null">
+                last_login_time = #{lastLoginTime},
+            </if>
+            <if test="lastLoginIp != null">
+                last_login_ip = #{lastLoginIp}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据UID动态修改用户信息，前端不需要暴露数据库id -->
+    <update id="updateUserByUid">
+        UPDATE user
+        <set>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="qq != null">qq = #{qq},</if>
+            <if test="wechat != null">wechat = #{wechat},</if>
+            <if test="alipayAccount != null">alipay_account = #{alipayAccount},</if>
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="college != null">college = #{college},</if>
+            <if test="major != null">major = #{major},</if>
+            <if test="className != null">class_name = #{className},</if>
+            <if test="dormitory != null">dormitory = #{dormitory},</if>
+            <if test="hobby != null">hobby = #{hobby},</if>
+            updated_at = NOW()
+        </set>
+        WHERE uid = #{uid} AND is_deleted = 0
+    </update>
+
+
+    <!-- 删除用户（软删除） -->
+    <update id="deleteUserByUid">
+        UPDATE user SET is_deleted = 1 WHERE uid = #{uid}
+    </update>
+
+</mapper>

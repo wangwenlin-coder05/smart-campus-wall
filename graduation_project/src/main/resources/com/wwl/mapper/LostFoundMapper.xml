@@ -1,0 +1,361 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.LostFoundMapper">
+
+    <resultMap id="ItemResultMap" type="com.wwl.model.entity.LostFoundItem">
+        <id column="item_id" property="id"/>
+        <result column="item_type" property="type"/>
+        <result column="item_title" property="title"/>
+        <result column="item_description" property="description"/>
+        <result column="item_location" property="location"/>
+        <result column="item_image" property="image"/>
+        <result column="item_publisher_uid" property="publisherUid"/>
+        <result column="item_publisher_name" property="publisherName"/>
+        <result column="item_publisher_phone" property="publisherPhone"/>
+        <result column="item_publisher_student_id" property="publisherStudentId"/>
+        <result column="item_publisher_avatar" property="publisherAvatar"/>
+        <result column="item_status" property="status"/>
+        <result column="item_views" property="views"/>
+        <result column="item_resolved_application_id" property="resolvedApplicationId"/>
+        <result column="item_returner_name" property="returnerName"/>
+        <result column="item_claimer_name" property="claimerName"/>
+        <result column="item_return_time" property="returnTime"/>
+        <result column="item_claim_time" property="claimTime"/>
+        <result column="item_is_deleted" property="isDeleted"/>
+        <result column="item_create_time" property="createTime"/>
+        <result column="item_update_time" property="updateTime"/>
+        <result column="application_id" property="applicationId"/>
+        <result column="application_status" property="applicationStatus"/>
+        <result column="apply_type" property="applyType"/>
+        <result column="applicant_uid" property="applicantUid"/>
+        <result column="applicant_name" property="applicantName"/>
+        <result column="applicant_phone" property="applicantPhone"/>
+        <result column="applicant_student_id" property="applicantStudentId"/>
+        <result column="applicant_id_card" property="applicantIdCard"/>
+        <result column="applicant_avatar" property="applicantAvatar"/>
+    </resultMap>
+
+    <resultMap id="ApplicationResultMap" type="com.wwl.model.entity.LostFoundApplication">
+        <id column="id" property="id"/>
+        <result column="item_id" property="itemId"/>
+        <result column="apply_type" property="applyType"/>
+        <result column="applicant_uid" property="applicantUid"/>
+        <result column="applicant_name" property="applicantName"/>
+        <result column="applicant_phone" property="applicantPhone"/>
+        <result column="applicant_student_id" property="applicantStudentId"/>
+        <result column="applicant_id_card" property="applicantIdCard"/>
+        <result column="status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="ItemResultMap">
+        SELECT
+            i.id AS item_id,
+            i.type AS item_type,
+            i.title AS item_title,
+            i.description AS item_description,
+            i.location AS item_location,
+            i.image AS item_image,
+            i.publisher_uid AS item_publisher_uid,
+            i.publisher_name AS item_publisher_name,
+            i.publisher_phone AS item_publisher_phone,
+            i.publisher_student_id AS item_publisher_student_id,
+            pu.avatar AS item_publisher_avatar,
+            i.status AS item_status,
+            i.views AS item_views,
+            i.resolved_application_id AS item_resolved_application_id,
+            i.returner_name AS item_returner_name,
+            i.claimer_name AS item_claimer_name,
+            i.return_time AS item_return_time,
+            i.claim_time AS item_claim_time,
+            i.is_deleted AS item_is_deleted,
+            i.create_time AS item_create_time,
+            i.update_time AS item_update_time,
+            a.id AS application_id,
+            a.status AS application_status,
+            a.apply_type,
+            a.applicant_uid,
+            a.applicant_name,
+            a.applicant_phone,
+            a.applicant_student_id,
+            a.applicant_id_card,
+            au.avatar AS applicant_avatar
+        FROM lost_found_item i
+        LEFT JOIN user pu ON pu.uid = i.publisher_uid COLLATE utf8mb4_0900_ai_ci
+        LEFT JOIN lost_found_application a ON a.item_id = i.id AND a.is_deleted = 0
+            AND a.status IN ('pending', 'approved', 'completed')
+            AND (
+                a.id = i.resolved_application_id
+                OR a.status IN ('pending', 'approved')
+                <if test="userUid != null and userUid != ''">
+                    OR a.applicant_uid = #{userUid}
+                    OR i.publisher_uid = #{userUid}
+                </if>
+            )
+        LEFT JOIN user au ON au.uid = a.applicant_uid COLLATE utf8mb4_0900_ai_ci
+        WHERE i.is_deleted = 0
+        <if test="type != null and type != '' and type != 'all'">
+            AND i.type = #{type}
+        </if>
+        <if test="status != null and status != ''">
+            AND i.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                i.title LIKE CONCAT('%', #{keyword}, '%')
+                OR i.description LIKE CONCAT('%', #{keyword}, '%')
+                OR i.location LIKE CONCAT('%', #{keyword}, '%')
+                OR i.publisher_name LIKE CONCAT('%', #{keyword}, '%')
+                OR i.publisher_phone LIKE CONCAT('%', #{keyword}, '%')
+                OR i.publisher_student_id LIKE CONCAT('%', #{keyword}, '%')
+                OR i.returner_name LIKE CONCAT('%', #{keyword}, '%')
+                OR i.claimer_name LIKE CONCAT('%', #{keyword}, '%')
+                OR EXISTS (
+                    SELECT 1
+                    FROM lost_found_application ak
+                    WHERE ak.item_id = i.id
+                      AND ak.is_deleted = 0
+                      AND (
+                          ak.applicant_name LIKE CONCAT('%', #{keyword}, '%')
+                          OR ak.applicant_phone LIKE CONCAT('%', #{keyword}, '%')
+                          OR ak.applicant_student_id LIKE CONCAT('%', #{keyword}, '%')
+                          OR ak.applicant_id_card LIKE CONCAT('%', #{keyword}, '%')
+                      )
+                )
+            )
+        </if>
+        ORDER BY
+            CASE
+                WHEN i.status != 0 THEN 3
+                WHEN i.publisher_uid = #{userUid} THEN 0
+                WHEN a.applicant_uid = #{userUid} AND a.id IS NOT NULL AND a.status IN ('pending', 'approved') THEN 1
+                ELSE 2
+            END,
+            i.create_time DESC,
+            i.id DESC
+    </select>
+
+    <select id="selectById" resultMap="ItemResultMap">
+        SELECT
+            i.id AS item_id,
+            i.type AS item_type,
+            i.title AS item_title,
+            i.description AS item_description,
+            i.location AS item_location,
+            i.image AS item_image,
+            i.publisher_uid AS item_publisher_uid,
+            i.publisher_name AS item_publisher_name,
+            i.publisher_phone AS item_publisher_phone,
+            i.publisher_student_id AS item_publisher_student_id,
+            pu.avatar AS item_publisher_avatar,
+            i.status AS item_status,
+            i.views AS item_views,
+            i.resolved_application_id AS item_resolved_application_id,
+            i.returner_name AS item_returner_name,
+            i.claimer_name AS item_claimer_name,
+            i.return_time AS item_return_time,
+            i.claim_time AS item_claim_time,
+            i.is_deleted AS item_is_deleted,
+            i.create_time AS item_create_time,
+            i.update_time AS item_update_time,
+            a.id AS application_id,
+            a.status AS application_status,
+            a.apply_type,
+            a.applicant_uid,
+            a.applicant_name,
+            a.applicant_phone,
+            a.applicant_student_id,
+            a.applicant_id_card,
+            au.avatar AS applicant_avatar
+        FROM lost_found_item i
+        LEFT JOIN user pu ON pu.uid = i.publisher_uid COLLATE utf8mb4_0900_ai_ci
+        LEFT JOIN lost_found_application a ON a.item_id = i.id AND a.is_deleted = 0
+            AND (
+                a.id = i.resolved_application_id
+                OR a.status IN ('pending', 'approved')
+                <if test="userUid != null and userUid != ''">
+                    OR a.applicant_uid = #{userUid}
+                    OR i.publisher_uid = #{userUid}
+                </if>
+            )
+        LEFT JOIN user au ON au.uid = a.applicant_uid COLLATE utf8mb4_0900_ai_ci
+        WHERE i.id = #{id}
+          AND i.is_deleted = 0
+        ORDER BY a.create_time DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insertItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lost_found_item
+        (type,title,description,location,image,publisher_uid,publisher_name,publisher_phone,
+         publisher_student_id,status,views,is_deleted,create_time,update_time)
+        VALUES
+        (#{type},#{title},#{description},#{location},#{image},#{publisherUid},#{publisherName},#{publisherPhone},
+         #{publisherStudentId},#{status},#{views},#{isDeleted},#{createTime},#{updateTime})
+    </insert>
+
+    <update id="increaseViews">
+        UPDATE lost_found_item SET views = views + 1 WHERE id = #{id}
+    </update>
+
+    <insert id="insertApplication" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lost_found_application
+        (item_id,apply_type,applicant_uid,applicant_name,applicant_phone,applicant_student_id,
+         applicant_id_card,status,is_deleted,create_time,update_time)
+        VALUES
+        (#{itemId},#{applyType},#{applicantUid},#{applicantName},#{applicantPhone},#{applicantStudentId},
+         #{applicantIdCard},#{status},#{isDeleted},#{createTime},#{updateTime})
+    </insert>
+
+    <select id="selectApplicationById" resultMap="ApplicationResultMap">
+        SELECT * FROM lost_found_application WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectActiveApplication" resultMap="ApplicationResultMap">
+        SELECT *
+        FROM lost_found_application
+        WHERE item_id = #{itemId}
+          AND applicant_uid = #{applicantUid}
+          AND status IN ('pending', 'approved')
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectOpenApplicationByItem" resultMap="ApplicationResultMap">
+        SELECT *
+        FROM lost_found_application
+        WHERE item_id = #{itemId}
+          AND status IN ('pending', 'approved')
+          AND is_deleted = 0
+        ORDER BY update_time DESC, id DESC
+        LIMIT 1
+    </select>
+
+    <select id="countApplicationsByItemAndApplicant" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM lost_found_application
+        WHERE item_id = #{itemId}
+          AND applicant_uid = #{applicantUid}
+          AND is_deleted = 0
+    </select>
+
+    <select id="selectNotificationCounts" resultType="java.util.HashMap">
+        SELECT
+            (
+                SELECT COUNT(DISTINCT i.id)
+                FROM lost_found_item i
+                INNER JOIN lost_found_application a ON a.item_id = i.id
+                WHERE i.publisher_uid = #{userUid}
+                  AND i.status = 0
+                  AND a.status = 'pending'
+                  AND a.is_deleted = 0
+                  AND i.is_deleted = 0
+            ) AS publishedPendingCount,
+            (
+                SELECT COUNT(DISTINCT i.id)
+                FROM lost_found_item i
+                INNER JOIN lost_found_application a ON a.item_id = i.id
+                WHERE a.applicant_uid = #{userUid}
+                  AND a.status IN ('approved', 'rejected')
+                  AND i.status = 0
+                  AND a.is_deleted = 0
+                  AND i.is_deleted = 0
+            ) AS appliedChangedCount
+    </select>
+
+    <update id="updateApplicationStatus">
+        UPDATE lost_found_application
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="resolveItem">
+        UPDATE lost_found_item
+        SET status = #{status},
+            resolved_application_id = #{applicationId},
+            returner_name = IF(#{status} = 1, #{applicantName}, returner_name),
+            claimer_name = IF(#{status} = 3, #{applicantName}, claimer_name),
+            return_time = IF(#{status} = 1, NOW(), return_time),
+            claim_time = IF(#{status} = 3, NOW(), claim_time),
+            update_time = NOW()
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <select id="selectApplicationsByPublisher" resultMap="ApplicationResultMap">
+        SELECT a.*
+        FROM lost_found_application a
+        INNER JOIN lost_found_item i ON i.id = a.item_id
+        WHERE i.publisher_uid = #{userUid}
+          AND a.is_deleted = 0
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectApplicationsByApplicant" resultMap="ApplicationResultMap">
+        SELECT *
+        FROM lost_found_application
+        WHERE applicant_uid = #{userUid}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectStats" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status IN (1, 3) THEN 1 ELSE 0 END) AS resolved,
+            SUM(CASE WHEN type = 'lost' AND status = 0 THEN 1 ELSE 0 END) AS lostActive,
+            SUM(CASE WHEN type = 'found' AND status = 0 THEN 1 ELSE 0 END) AS foundActive
+        FROM lost_found_item
+    </select>
+
+    <update id="softDeleteItem">
+        UPDATE lost_found_item
+        SET is_deleted = 1, update_time = NOW()
+        WHERE id = #{id}
+          AND publisher_uid = #{userUid}
+          AND is_deleted = 0
+    </update>
+
+    <!-- AI 助手：多关键词 OR 搜索 -->
+    <select id="selectByKeywords" resultMap="ItemResultMap">
+        SELECT
+            i.id AS item_id,
+            i.type AS item_type,
+            i.title AS item_title,
+            i.description AS item_description,
+            i.location AS item_location,
+            i.image AS item_image,
+            i.publisher_uid AS item_publisher_uid,
+            i.publisher_name AS item_publisher_name,
+            i.publisher_phone AS item_publisher_phone,
+            i.publisher_student_id AS item_publisher_student_id,
+            pu.avatar AS item_publisher_avatar,
+            i.status AS item_status,
+            i.views AS item_views,
+            i.resolved_application_id AS item_resolved_application_id,
+            i.returner_name AS item_returner_name,
+            i.claimer_name AS item_claimer_name,
+            i.return_time AS item_return_time,
+            i.claim_time AS item_claim_time,
+            i.is_deleted AS item_is_deleted,
+            i.create_time AS item_create_time,
+            i.update_time AS item_update_time
+        FROM lost_found_item i
+        LEFT JOIN user pu ON i.publisher_uid = pu.uid
+        WHERE i.is_deleted = 0
+          AND i.status = 'published'
+          AND (
+            <foreach collection="keywords" item="kw" separator=" OR ">
+                i.title LIKE CONCAT('%', #{kw}, '%')
+                OR i.description LIKE CONCAT('%', #{kw}, '%')
+                OR i.location LIKE CONCAT('%', #{kw}, '%')
+            </foreach>
+          )
+        ORDER BY i.create_time DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .menu-desc {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 校园信息管理系统</h1>
+        <p>请选择要访问的功能模块</p>
+        
+        <div class="menu">
+            <a href="/profile.html" class="menu-item">
+                <div class="menu-icon">👤</div>
+                <div class="menu-title">个人信息</div>
+                <div class="menu-desc">查看和编辑个人资料</div>
+            </a>
+            
+            <a href="/user-management.html" class="menu-item">
+                <div class="menu-icon">👥</div>
+                <div class="menu-title">用户管理</div>
+                <div class="menu-desc">用户信息的增删改查、批量管理</div>
+            </a>
+            
+            <!-- 后续可以添加更多模块 -->
+            <!--
+            <a href="#" class="menu-item">
+                <div class="menu-icon">📋</div>
+                <div class="menu-title">订单管理</div>
+                <div class="menu-desc">跑腿订单管理与查询</div>
+            </a>
+            -->
+        </div>
+    </div>
+</body>
+</html>

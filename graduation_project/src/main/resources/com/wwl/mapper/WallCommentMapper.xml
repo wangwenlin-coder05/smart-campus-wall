@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallCommentMapper">
+
+    <!-- 基础字段片段 -->
+    <sql id="baseColumn">
+        id,post_id,user_id,user_uid,is_anonymous,content,media_urls,like_count,
+        parent_id,reply_comment_id,reply_user_id,reply_user_uid,create_time
+    </sql>
+
+    <!-- 新增评论 -->
+    <insert id="insert">
+        INSERT INTO wall_comment
+        (post_id,user_id,user_uid,is_anonymous,content,media_urls,like_count,
+         parent_id,reply_comment_id,reply_user_id,reply_user_uid,is_deleted)
+        VALUES
+            (#{postId},#{userId},#{userUid},#{isAnonymous},#{content},#{mediaUrls},#{likeCount},
+             #{parentId},#{replyCommentId},#{replyUserId},#{replyUserUid},0)
+    </insert>
+
+    <!-- 查询帖子下评论列表，联表用户带出昵称头像 -->
+    <select id="listCommentByPostId" resultType="com.wwl.model.entity.WallComment">
+        SELECT
+            c.id,
+            c.post_id,
+            c.user_uid,
+            c.is_anonymous,
+            c.content,
+            c.media_urls,
+            c.like_count,
+            c.parent_id,
+            c.reply_comment_id,
+            c.reply_user_uid,
+            c.create_time,
+            u.username as nickname,
+            u.avatar,
+            ru.username AS replyNickname
+        FROM wall_comment c
+                 LEFT JOIN user u ON c.user_id = u.id
+                 LEFT JOIN user ru ON c.reply_user_id = ru.id
+        WHERE c.is_deleted = 0
+          AND c.post_id = #{postId}
+        ORDER BY c.create_time ASC
+    </select>
+
+    <!-- 根据脱敏UID查真实用户ID -->
+    <select id="getUserIdByUserUid" resultType="java.lang.Long">
+        SELECT id FROM user WHERE uid = #{userUid}
+    </select>
+
+    <!-- 根据评论ID查询评论，用于删除权限校验 -->
+    <select id="getCommentById" resultType="com.wwl.model.entity.WallComment">
+        SELECT id,user_uid,is_deleted FROM wall_comment WHERE id = #{id}
+    </select>
+
+    <!-- 评论软删除 -->
+    <update id="deleteCommentSoft">
+        UPDATE wall_comment
+        SET is_deleted = 1
+        WHERE id = #{commentId}
+    </update>
+
+    <!-- 查询帖子的热门评论（点赞数最高的前3条，点赞相同按时间倒序） -->
+    <select id="selectHotCommentsByPostId" resultType="com.wwl.model.entity.WallComment">
+        SELECT
+            c.id,
+            c.post_id,
+            c.user_uid,
+            c.is_anonymous,
+            c.content,
+            c.media_urls,
+            c.like_count,
+            c.parent_id,
+            c.reply_comment_id,
+            c.reply_user_uid,
+            c.create_time,
+            u.username as nickname,
+            u.avatar,
+            ru.username AS replyNickname
+        FROM wall_comment c
+                 LEFT JOIN user u ON c.user_id = u.id
+                 LEFT JOIN user ru ON c.reply_user_id = ru.id
+        WHERE c.is_deleted = 0
+          AND c.parent_id = 0
+          AND c.post_id = #{postId}
+        ORDER BY c.like_count DESC, c.create_time DESC
+        LIMIT 3
+    </select>
+
+    <!-- 批量查询：根据帖子ID集合查询所有评论（解决 N+1 问题）
+         不在此处 LIMIT，由 Service 层按 postId 分组后各自取 Top3 -->
+    <select id="selectHotCommentsByPostIdList" resultType="com.wwl.model.entity.WallComment">
+        SELECT
+            c.id,
+            c.post_id,
+            c.user_uid,
+            c.is_anonymous,
+            c.content,
+            c.media_urls,
+            c.like_count,
+            c.parent_id,
+            c.reply_comment_id,
+            c.reply_user_uid,
+            c.create_time,
+            u.username as nickname,
+            u.avatar,
+            ru.username AS replyNickname
+        FROM wall_comment c
+                 LEFT JOIN user u ON c.user_id = u.id
+                 LEFT JOIN user ru ON c.reply_user_id = ru.id
+        WHERE c.is_deleted = 0
+          AND c.parent_id = 0
+          AND c.post_id IN
+        <foreach collection="postIdList" item="pid" open="(" separator="," close=")">
+            #{pid}
+        </foreach>
+        ORDER BY c.post_id, c.like_count DESC, c.create_time DESC
+    </select>
+
+    <!-- 插入评论点赞动作 -->
+    <insert id="insertLikeAction">
+        INSERT IGNORE INTO wall_post_action(post_no, user_uid, action_type)
+        VALUES (#{commentId}, #{userUid}, 'COMMENT_LIKE')
+    </insert>
+
+    <!-- 删除评论点赞动作 -->
+    <delete id="deleteLikeAction">
+        DELETE FROM wall_post_action
+        WHERE post_no = #{commentId}
+          AND user_uid = #{userUid}
+          AND action_type = 'COMMENT_LIKE'
+    </delete>
+
+    <!-- 修改评论点赞数 -->
+    <update id="changeLikeCount">
+        UPDATE wall_comment
+        SET like_count = GREATEST(like_count + #{delta}, 0)
+        WHERE id = #{commentId}
+    </update>
+
+</mapper>

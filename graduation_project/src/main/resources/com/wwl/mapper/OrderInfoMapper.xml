@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.OrderInfoMapper">
+
+    <!-- 新增跑腿订单 -->
+
+
+    <!-- 根据订单ID查询单条订单详情（联表查询完整地址） -->
+    <select id="getOrderByIdWithAddress" resultType="com.wwl.model.vo.OrderInfoVO">
+        SELECT oi.*,
+               sa.address AS startAddressText,
+               ea.address AS endAddressText
+        FROM order_info oi
+                 LEFT JOIN user_address sa ON oi.start_address_id = sa.id
+                 LEFT JOIN user_address ea ON oi.end_address_id = ea.id
+        WHERE oi.id = #{id}
+          AND oi.is_deleted = 0
+    </select>
+
+    <!--
+        分页查询骑手接单大厅可接单订单
+        业务规则：
+        1. 只查询待接单状态订单 order_status=0
+        2. 过滤已逻辑删除订单
+        3. 过滤期望送达时间已过期订单
+        4. 未接单状态：完整展示起止地址 + 公开备注
+        5. 隐藏：用户ID、骑手ID、取件码、手机号、订单编号等隐私字段
+        6. 支持按订单一级分类、二级分类筛选
+    -->
+    <select id="selectHallOrderList" resultType="com.wwl.model.vo.OrderHallVO">
+        SELECT
+        oi.order_no,
+        -- 订单基础分类信息
+        oi.parent_type,
+        oi.sub_type,
+        -- 订单需求备注 大厅正常展示
+        oi.remark,
+        -- 价格相关信息
+        oi.goods_budget,
+        oi.reward_price,
+        oi.order_price,
+        -- 时间与状态
+        oi.expect_time,
+        oi.order_status,
+        oi.create_time,
+        -- 完整展示出发地址
+        sa.address AS startAddress,
+        -- 完整展示目的地址
+        ea.address AS endAddress
+        FROM order_info oi
+        -- 关联出发地址表
+        LEFT JOIN user_address sa ON oi.start_address_id = sa.id
+        -- 关联目的地址表
+        LEFT JOIN user_address ea ON oi.end_address_id = ea.id
+        WHERE
+        -- 条件1：订单状态为待接单
+        oi.order_status = 0
+        -- 条件2：排除已删除订单
+        AND oi.is_deleted = 0
+        -- 条件3：过滤已超时失效订单
+        <!-- AND oi.expect_time > NOW() -->
+        -- 动态筛选：一级订单类型
+        <if test="query.parentType != null and query.parentType != ''">
+            AND oi.parent_type = #{query.parentType}
+        </if>
+        -- 动态筛选：二级细分订单类型
+        <if test="query.subType != null and query.subType != ''">
+            AND oi.sub_type = #{query.subType}
+        </if>
+        <!-- 动态排序，无传参默认创建时间倒序 -->
+        <choose>
+            <when test="query.sortField != null and query.sortField != '' and query.sortOrder != null and query.sortOrder != ''">
+                ORDER BY ${query.sortField} ${query.sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY oi.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <!-- 查询指定用户的全部订单，按下单时间倒序（联表查询完整地址） -->
+    <!-- 查询指定用户的全部订单，按下单时间倒序（联表查询完整地址+骑手配送时间） -->
+    <select id="getOrderByUserIdWithAddress"
+            resultType="com.wwl.model.vo.OrderInfoVO">
+        SELECT
+        oi.*,
+        sa.address AS startAddressText,
+        ea.address AS endAddressText,
+        ro.accept_time,
+        ro.pick_time,
+        ro.deliver_time,
+        ro.finish_time,
+        ro.service_fee AS serviceFee,
+        oi.cancel_reason AS cancelReason,
+        ro.cancel_reason AS riderCancelReason
+        FROM order_info oi
+        LEFT JOIN user_address sa ON oi.start_address_id = sa.id
+        LEFT JOIN user_address ea ON oi.end_address_id = ea.id
+        <!-- 左连骑手订单表，没接单也能查出订单 -->
+        LEFT JOIN tb_rider_order ro ON oi.order_no = ro.order_no AND ro.is_deleted
+        = 0
+        WHERE oi.user_id = #{userId}
+        AND oi.is_deleted = 0
+        ORDER BY oi.create_time DESC
+    </select>
+
+
+    <!-- 动态修改订单：按需更新非空字段 -->
+    <update id="updateOrder">
+        UPDATE order_info
+        <set>
+            <if test="riderId != null">rider_id = #{riderId},</if>
+            <if test="parentType != null and parentType != ''">parent_type =
+                #{parentType},
+            </if>
+            <if test="subType != null and subType != ''">sub_type = #{subType},
+            </if>
+            <if test="startAddressId != null">start_address_id =
+                #{startAddressId},
+            </if>
+            <if test="endAddressId != null">end_address_id = #{endAddressId},</if>
+            <if test="fetchCode != null and fetchCode != ''">fetch_code =
+                #{fetchCode},
+            </if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="rewardPrice != null">reward_price = #{rewardPrice},</if>
+            <if test="goodsBudget != null">goods_budget = #{goodsBudget},</if>
+            <if test="expectTime != null">expect_time = #{expectTime},</if>
+            <if test="orderPrice != null">order_price = #{orderPrice},</if>
+            <if test="payStatus != null">pay_status = #{pay_status},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="cancelApplyCount != null">cancel_apply_count = #{cancelApplyCount},</if>
+            <if test="lifecycleLog != null">lifecycle_log = #{lifecycleLog},</if>
+            <if test="preOrderStatus != null">pre_order_status =
+                #{preOrderStatus},
+            </if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        <!-- 改为根据订单号更新 + 逻辑删除 + 仅待接单可接单 -->
+        WHERE order_no = #{orderNo}
+        AND is_deleted = 0
+    </update>
+
+
+    <!--  根据订单编号查询订单所有信息 -->
+    <select id="selectByOrderNo" resultType="com.wwl.model.entity.OrderInfo">
+        SELECT *
+        FROM order_info
+        WHERE order_no = #{orderNo}
+    </select>
+
+
+    <!-- 根据id删除订单（软删除） -->
+    <update id="deleteOrder">
+        UPDATE order_info
+        SET is_deleted = 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通用多条件组合查询订单，支持多字段筛选（联表查询完整地址）
+    自动区分场景：
+    1. 无userId、riderId + orderStatus=0 → 接单大厅，过滤过期订单
+    2. 仅传userId → 用户查询本人下单
+    3. 仅传riderId → 骑手查询本人接单
+    4. 无归属ID、不限状态 → 管理员查询全量订单
+    -->
+    <select id="getOrderByConditionWithAddress"
+            resultType="com.wwl.model.vo.OrderInfoVO">
+        SELECT
+        oi.*,
+        sa.address AS startAddressText,
+        ea.address AS endAddressText
+        FROM order_info oi
+        LEFT JOIN user_address sa ON oi.start_address_id = sa.id
+        LEFT JOIN user_address ea ON oi.end_address_id = ea.id
+        <where>
+            oi.is_deleted = 0
+
+            <!-- 接单大厅专属：仅待接单、无归属人，过滤过期订单 -->
+            <if test="orderStatus == 0 and userId == null and riderId == null">
+                AND oi.expect_time > NOW()
+            </if>
+
+            <!-- 用户自身订单权限 -->
+            <if test="userId != null">
+                AND oi.user_id = #{userId}
+            </if>
+
+            <!-- 骑手自身订单权限 -->
+            <if test="riderId != null">
+                AND oi.rider_id = #{riderId}
+            </if>
+
+            <!-- 通用筛选条件 -->
+            <if test="parentType != null and parentType != ''">
+                AND oi.parent_type = #{parentType}
+            </if>
+            <if test="subType != null and subType != ''">
+                AND oi.sub_type = #{subType}
+            </if>
+            <if test="rewardPrice != null">
+                AND oi.reward_price = #{rewardPrice}
+            </if>
+            <if test="payStatus != null">
+                AND oi.pay_status = #{payStatus}
+            </if>
+            <if test="orderStatus != null">
+                AND oi.order_status = #{orderStatus}
+            </if>
+        </where>
+        ORDER BY oi.create_time DESC
+    </select>
+
+
+</mapper>

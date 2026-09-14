@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallReportMapper">
+
+    <sql id="base_column">
+        id,user_id,post_id,comment_id,report_type,reason,
+        status,is_deleted,create_time
+    </sql>
+
+    <!-- 动态多条件查询举报记录 -->
+    <select id="selectReportList" resultType="com.wwl.model.entity.WallReport">
+        SELECT <include refid="base_column"/>
+        FROM wall_report
+        <where>
+            is_deleted = 0
+            <if test="postId != null">AND post_id = #{postId}</if>
+            <if test="commentId != null">AND comment_id = #{commentId}</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 新增举报 -->
+    <insert id="insertReport">
+        INSERT INTO wall_report
+        (user_id,post_id,comment_id,report_type,reason,
+         status,is_deleted,create_time)
+        VALUES
+            (#{userId},#{postId},#{commentId},#{reportType},#{reason},
+             #{status},#{isDeleted},#{createTime})
+    </insert>
+
+    <!-- 动态修改举报状态 -->
+    <update id="updateReport">
+        UPDATE wall_report
+        <set>
+            <if test="reportType != null">report_type = #{reportType},</if>
+            <if test="reason != null">reason = #{reason},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 举报记录逻辑删除 -->
+    <update id="logicDeleteReport">
+        UPDATE wall_report SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

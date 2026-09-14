@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.UserFriendMapper">
+
+    <select id="searchUser" resultType="com.wwl.model.entity.User">
+        SELECT uid, phone, username, avatar, gender, college, major
+        FROM user
+        WHERE is_deleted = 0
+          AND status = 1
+          AND uid != #{currentUid}
+          AND (
+            uid = #{keyword}
+            OR phone = #{keyword}
+            OR username LIKE CONCAT('%', #{keyword}, '%')
+          )
+        ORDER BY created_at DESC
+        LIMIT 20
+    </select>
+
+    <select id="countFriend" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_friend
+        WHERE ((user_uid = #{userUid} AND friend_uid = #{friendUid})
+            OR (user_uid = #{friendUid} AND friend_uid = #{userUid}))
+          AND status = 1
+    </select>
+
+    <select id="countAnyRelation" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_friend
+        WHERE (user_uid = #{userUid} AND friend_uid = #{friendUid})
+           OR (user_uid = #{friendUid} AND friend_uid = #{userUid})
+    </select>
+
+    <insert id="insert">
+        INSERT INTO user_friend(user_uid, friend_uid, remark, status)
+        VALUES(#{userUid}, #{friendUid}, #{remark}, 0)
+    </insert>
+
+    <update id="accept">
+        UPDATE user_friend
+        SET status = 1
+        WHERE id = #{id}
+          AND friend_uid = #{friendUid}
+          AND status = 0
+    </update>
+
+    <select id="listFriends" resultType="com.wwl.model.entity.User">
+        SELECT u.uid, u.phone, u.username, u.avatar, u.gender, u.college, u.major
+        FROM user_friend f
+        INNER JOIN user u ON u.uid = CASE WHEN f.user_uid = #{userUid} THEN f.friend_uid ELSE f.user_uid END
+        WHERE (f.user_uid = #{userUid} OR f.friend_uid = #{userUid})
+          AND f.status = 1
+          AND u.is_deleted = 0
+        ORDER BY f.created_at DESC
+    </select>
+
+    <select id="listReceivedRequests" resultType="com.wwl.model.entity.UserFriend">
+        SELECT id, user_uid, friend_uid, remark, status
+        FROM user_friend
+        WHERE friend_uid = #{friendUid}
+          AND status = 0
+        ORDER BY created_at DESC
+    </select>
+</mapper>

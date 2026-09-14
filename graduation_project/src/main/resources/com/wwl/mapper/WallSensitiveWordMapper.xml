@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallSensitiveWordMapper">
+
+    <sql id="base_column">
+        id,word,is_deleted,create_time
+    </sql>
+
+    <!-- 动态查询敏感词列表 模糊检索 -->
+    <select id="selectSensitiveList" resultType="com.wwl.model.entity.WallSensitiveWord">
+        SELECT <include refid="base_column"/>
+        FROM wall_sensitive_word
+        <where>
+            is_deleted = 0
+            <if test="word != null and word != ''">
+                AND word LIKE CONCAT('%',#{word},'%')
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <!-- 新增敏感词 -->
+    <insert id="insertSensitive">
+        INSERT INTO wall_sensitive_word
+            (word,is_deleted,create_time)
+        VALUES
+            (#{word},#{isDeleted},#{createTime})
+    </insert>
+
+    <!-- 敏感词逻辑删除 -->
+    <update id="logicDeleteSensitive">
+        UPDATE wall_sensitive_word SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

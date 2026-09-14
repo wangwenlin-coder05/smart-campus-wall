@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.UserAddressMapper">
+
+    <!-- 新增地址 -->
+    <insert id="insert">
+        INSERT INTO user_address(address_no,user_id,receiver_name,receiver_phone,address_type,address,is_default)
+        VALUES(#{addressNo},#{userId},#{receiverName},#{receiverPhone},#{addressType},#{address},#{isDefault})
+    </insert>
+
+    <!-- 根据id删除（软删除） -->
+    <update id="deleteById">
+        UPDATE user_address SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="deleteByAddressNo">
+        UPDATE user_address SET is_deleted = 1 WHERE address_no = #{addressNo} AND user_id = #{userId}
+    </update>
+
+    <!-- 修改地址 -->
+    <update id="update">
+        UPDATE user_address
+        <set>
+            <if test="receiverName != null">receiver_name = #{receiverName},</if>
+            <if test="receiverPhone != null">receiver_phone = #{receiverPhone},</if>
+            <if test="addressType != null">address_type = #{addressType},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            updated_at = NOW()
+        </set>
+        WHERE address_no = #{addressNo}
+    </update>
+
+    <!-- 根据id查询单条 -->
+    <select id="getById" resultType="com.wwl.model.entity.UserAddress">
+        SELECT * FROM user_address WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="getByAddressNo" resultType="com.wwl.model.entity.UserAddress">
+        SELECT * FROM user_address WHERE address_no = #{addressNo} AND is_deleted = 0
+    </select>
+
+    <select id="getByAddressNoAndUserId" resultType="com.wwl.model.entity.UserAddress">
+        SELECT * FROM user_address WHERE address_no = #{addressNo} AND user_id = #{userId} AND is_deleted = 0
+    </select>
+
+    <!-- 查询用户全部地址 -->
+    <select id="listByUserId" resultType="com.wwl.model.entity.UserAddress">
+        SELECT * FROM user_address WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY is_default DESC, created_at DESC
+    </select>
+
+    <!-- 取消用户所有默认地址 -->
+    <update id="cancelAllDefault">
+        UPDATE user_address SET is_default = 0 WHERE user_id = #{userId} AND is_deleted = 0
+    </update>
+
+    <update id="setDefault">
+        UPDATE user_address SET is_default = 1 WHERE user_id = #{userId} AND address_no = #{addressNo} AND is_deleted = 0
+    </update>
+
+</mapper>

@@ -1,0 +1,267 @@
+{
+	"pages": [{
+			"path": "pages/index/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order/orderFetch",
+			"style": {
+				"navigationBarTitleText": "发布订单"
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "个人信息"
+			}
+		},
+		{
+			"path": "pages/user/home",
+			"style": {
+				"navigationBarTitleText": "用户主页"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录注册"
+			}
+		},
+		{
+			"path": "pages/friend/friend",
+			"style": {
+				"navigationBarTitleText": "添加好友"
+			}
+		},
+		{
+			"path": "pages/wall/wall",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/address/list",
+			"style": {
+				"navigationBarTitleText": "我的地址"
+			}
+		},
+		{
+			"path": "pages/address/edit",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/order/myOrder",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			}
+		},
+		{
+			"path": "pages/order/orderDetail",
+			"style": {
+				"navigationBarTitleText": "订单详情"
+			}
+		},
+		{
+			"path": "pages/wall/publish",
+			"style": {
+				"navigationBarTitleText": "发布帖子"
+			}
+		},
+		{
+			"path": "pages/order/partTimeOrder",
+			"style": {
+				"navigationBarTitleText": "互助接单"
+			}
+		},
+		{
+			"path": "pages/organization/organization",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/organization/organizationDetail",
+			"style": {
+				"navigationBarTitleText": "组局详情"
+			}
+		},
+		{
+			"path": "pages/organization/myOrganization",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/organization/ww",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/shoppingMall/shoppingMall",
+			"style": {
+				"navigationBarTitleText": "二手商城"
+			}
+		},
+		{
+			"path": "pages/shoppingMall/productDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/lostFound/lostFound",
+			"style": {
+				"navigationBarTitleText": "失物招领",
+				"navigationBarBackgroundColor": "#6c5ce7",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/lostFound/claim",
+			"style": {
+				"navigationBarTitleText": "认领物品",
+				"navigationBarBackgroundColor": "#6c5ce7",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/lostFound/publishLostFound",
+			"style": {
+				"navigationBarTitleText": "发布失物招领",
+				"navigationBarBackgroundColor": "#6c5ce7",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/lostFound/lostFoundDetail",
+			"style": {
+				"navigationBarTitleText": "物品详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/printFile/printFile",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/professionalExchange/professionalExchange",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/Feiyemain/Feiyemain",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/wall/myPublishWall",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/organization/publishOrganization",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/message/messageList",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/message/interaction",
+			"style": {
+				"navigationBarTitleText": "互动",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/message/myFriends",
+			"style": {
+				"navigationBarTitleText": "我的好友"
+			}
+		},
+		{
+			"path": "pages/partner/partner",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/partner/publishPartner",
+			"style": {
+				"navigationBarTitleText": "发布相亲"
+			}
+		},
+		{
+			"path": "pages/partner/partnerDetail",
+			"style": {
+				"navigationBarTitleText": "嘉宾详情"
+			}
+		},
+		{
+			"path": "pages/discussionGroup/discussionGroup",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "校园跑腿系统",
+		"navigationBarBackgroundColor": "#ffffff",
+		"backgroundColor": "#f5f6f9"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#6c5ce7",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/wall/wall",
+				"text": "表白墙"
+			}, {
+				"pagePath": "pages/message/messageList",
+				"text": "消息"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"text": "我的"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}

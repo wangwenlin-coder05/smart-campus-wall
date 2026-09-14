@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallAnonymousConfigMapper">
+
+    <!-- 新增匿名配置 -->
+    <insert id="insertAnonymousConfig">
+        INSERT INTO wall_anonymous_config
+        (anonymous_avatar, anonymous_nickname, sort_num, is_deleted, create_time, update_time)
+        VALUES
+            (#{anonymousAvatar}, #{anonymousNickname}, #{sortNum}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 修改匿名配置 -->
+    <update id="updateAnonymousConfig">
+        UPDATE wall_anonymous_config
+        SET
+            anonymous_avatar = #{anonymousAvatar},
+            anonymous_nickname = #{anonymousNickname},
+            sort_num = #{sortNum},
+            update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 逻辑删除匿名配置 -->
+    <update id="deleteAnonymousConfigById">
+        UPDATE wall_anonymous_config
+        SET is_deleted = 1, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID查询单条配置 -->
+    <select id="selectAnonymousConfigById" resultType="com.wwl.model.entity.WallAnonymousConfig">
+        SELECT
+            id,
+            anonymous_avatar,
+            anonymous_nickname,
+            sort_num,
+            is_deleted,
+            create_time,
+            update_time
+        FROM wall_anonymous_config
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有正常可用的匿名配置（业务核心查询） -->
+    <select id="selectAllNormalAnonymousConfig" resultType="com.wwl.model.entity.WallAnonymousConfig">
+        SELECT
+            id,
+            anonymous_avatar,
+            anonymous_nickname,
+            sort_num
+        FROM wall_anonymous_config
+        WHERE is_deleted = 0
+        ORDER BY sort_num DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园跑腿 - 放单系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #667eea;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .address-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .address-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .address-item:hover {
+            background-color: #f8f9ff;
+        }
+
+        .address-item.selected {
+            background-color: #eef2ff;
+            border-left: 3px solid #667eea;
+        }
+
+        .order-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .order-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-type {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .order-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivering {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .price-display {
+            font-size: 24px;
+            color: #ff6b6b;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 校园跑腿服务平台</h1>
+        <p>便捷的校园生活服务，让跑腿变得更简单</p>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="create-order">创建订单</div>
+            <div class="tab" data-tab="my-orders">我的订单</div>
+            <div class="tab" data-tab="address-manage">地址管理</div>
+        </div>
+
+        <!-- 创建订单标签页 -->
+        <div id="create-order" class="tab-content active">
+            <div class="main-content">
+                <div class="card">
+                    <h2 class="card-title">📝 创建新订单</h2>
+                    <form id="orderForm">
+                        <div class="form-group">
+                            <label for="parentType">服务类型 *</label>
+                            <select id="parentType" required>
+                                <option value="">请选择服务类型</option>
+                                <option value="代取服务">代取服务</option>
+                                <option value="帮买服务">帮买服务</option>
+                                <option value="跑腿代办">跑腿代办</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subType">细分类型 *</label>
+                            <select id="subType" required>
+                                <option value="">请先选择服务类型</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goodsName">物品名称/购买清单 *</label>
+                            <input type="text" id="goodsName" placeholder="请输入物品名称或购买清单" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fetchCode">取件码（如适用）</label>
+                            <input type="text" id="fetchCode" placeholder="请输入取件码">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="remark">订单备注</label>
+                            <textarea id="remark" placeholder="请输入特殊要求或备注信息"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderPrice">跑腿费用（元）*</label>
+                            <input type="number" id="orderPrice" step="0.01" min="0" value="5.00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goodsBudget">预算金额（元，仅帮买服务）</label>
+                            <input type="number" id="goodsBudget" step="0.01" min="0" value="0.00">
+                        </div>
+
+                        <div class="price-display">
+                            预计总费用: ¥<span id="totalPrice">5.00</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width: 100%;">立即下单</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">📍 地址信息</h2>
+                    
+                    <div class="form-group">
+                        <label>起始地址 *</label>
+                        <div class="address-list" id="startAddressList">
+                            <div class="loading">加载中...</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>送达地址 *</label>
+                        <div class="address-list" id="endAddressList">
+                            <div class="loading">加载中...</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn" onclick="showAddAddressModal()">+ 添加新地址</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的订单标签页 -->
+        <div id="my-orders" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">📋 我的订单</h2>
+                <div class="order-list" id="orderList">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 地址管理标签页 -->
+        <div id="address-manage" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">🏠 地址管理</h2>
+                <div class="address-list" id="allAddressList" style="max-height: none;">
+                    <div class="loading">加载中...</div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="showAddAddressModal()">+ 添加新地址</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加地址模态框 -->
+    <div id="addressModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddressModal()">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #667eea;">添加新地址</h2>
+            <form id="addressForm">
+                <div class="form-group">
+                    <label for="receiverName">收货人姓名 *</label>
+                    <input type="text" id="receiverName" required>
+                </div>
+                <div class="form-group">
+                    <label for="receiverPhone">收货人手机号 *</label>
+                    <input type="tel" id="receiverPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="addressType">地址类型</label>
+                    <select id="addressType">
+                        <option value="1">校园内</option>
+                        <option value="2">校外</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="address">基础地址 *</label>
+                    <input type="text" id="address" placeholder="例如：XX大学XX校区" required>
+                </div>
+                <div class="form-group">
+                    <label for="detailAddress">详细地址/寝室号</label>
+                    <input type="text" id="detailAddress" placeholder="例如：X栋X单元XXX室">
+                </div>
+                <div class="form-group">
+                    <label for="floor">楼层</label>
+                    <input type="number" id="floor" placeholder="例如：3">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isDefault"> 设为默认地址
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%;">保存地址</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 消息提示框 -->
+    <div id="messageBox" class="message"></div>
+
+    <script>
+        // 全局变量
+        let currentUserId = 1; // 模拟用户ID，实际项目中应从登录状态获取
+        let selectedStartAddress = null;
+        let selectedEndAddress = null;
+        let addresses = [];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        // 初始化页面
+        function initializePage() {
+            setupTabs();
+            loadAddresses();
+            setupEventListeners();
+            updateTotalPrice();
+            loadParentTypes(); // 加载服务类型
+        }
+
+        // 设置标签页切换
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加active类到当前标签
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // 如果切换到订单页面，加载订单列表
+                    if (tabId === 'my-orders') {
+                        loadOrders();
+                    } else if (tabId === 'address-manage') {
+                        loadAllAddresses();
+                    }
+                });
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 服务类型变化时更新细分类型
+            document.getElementById('parentType').addEventListener('change', function() {
+                const parentId = this.value;
+                if (parentId) {
+                    loadSubTypes(parentId);
+                } else {
+                    // 清空细分类型选项
+                    const subTypeSelect = document.getElementById('subType');
+                    subTypeSelect.innerHTML = '<option value="">请先选择服务类型</option>';
+                }
+            });
+
+            // 表单提交
+            document.getElementById('orderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                createOrder();
+            });
+
+            // 地址表单提交
+            document.getElementById('addressForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveAddress();
+            });
+
+            // 价格变化时更新总价
+            document.getElementById('orderPrice').addEventListener('input', updateTotalPrice);
+            document.getElementById('goodsBudget').addEventListener('input', updateTotalPrice);
+        }
+
+        // 加载服务类型（一级分类）
+        async function loadParentTypes() {
+            try {
+                const response = await fetch('/category/first');
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    const parentTypeSelect = document.getElementById('parentType');
+                    parentTypeSelect.innerHTML = '<option value="">请选择服务类型</option>';
+                    
+                    result.data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.id; // 使用ID作为值
+                        option.textContent = category.catName; // 显示分类名称
+                        parentTypeSelect.appendChild(option);
+                    });
+                } else {
+                    showMessage('加载服务类型失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('加载服务类型出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 加载细分类型（二级分类）
+        async function loadSubTypes(parentId) {
+            try {
+                const response = await fetch(`/category/child/${parentId}`);
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    const subTypeSelect = document.getElementById('subType');
+                    subTypeSelect.innerHTML = '<option value="">请选择细分类型</option>';
+                    
+                    result.data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.catName; // 使用分类名称作为值，便于订单创建
+                        option.textContent = category.catName;
+                        subTypeSelect.appendChild(option);
+                    });
+                } else {
+                    showMessage('加载细分类型失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('加载细分类型出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 更新总价格显示
+        function updateTotalPrice() {
+            const orderPrice = parseFloat(document.getElementById('orderPrice').value) || 0;
+            const goodsBudget = parseFloat(document.getElementById('goodsBudget').value) || 0;
+            const totalPrice = orderPrice + goodsBudget;
+            document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+        }
+
+        // 加载用户地址列表
+        async function loadAddresses() {
+            try {
+                const response = await fetch(`/address/list/${currentUserId}`);
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    addresses = result.data || [];
+                    renderAddressLists();
+                } else {
+                    showMessage('加载地址失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('加载地址出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 渲染地址列表
+        function renderAddressLists() {
+            const startList = document.getElementById('startAddressList');
+            const endList = document.getElementById('endAddressList');
+            
+            if (addresses.length === 0) {
+                startList.innerHTML = '<div class="loading">暂无地址，请添加</div>';
+                endList.innerHTML = '<div class="loading">暂无地址，请添加</div>';
+                return;
+            }
+            
+            // 渲染起始地址列表
+            startList.innerHTML = '';
+            addresses.forEach(address => {
+                const div = document.createElement('div');
+                div.className = 'address-item';
+                div.innerHTML = `
+                    <strong>${address.receiverName}</strong> ${address.receiverPhone}<br>
+                    ${address.address} ${address.detailAddress || ''}<br>
+                    <small>${address.isDefault === 1 ? '【默认地址】' : ''}</small>
+                `;
+                div.onclick = () => selectStartAddress(address.id, div);
+                startList.appendChild(div);
+            });
+            
+            // 渲染送达地址列表
+            endList.innerHTML = '';
+            addresses.forEach(address => {
+                const div = document.createElement('div');
+                div.className = 'address-item';
+                div.innerHTML = `
+                    <strong>${address.receiverName}</strong> ${address.receiverPhone}<br>
+                    ${address.address} ${address.detailAddress || ''}<br>
+                    <small>${address.isDefault === 1 ? '【默认地址】' : ''}</small>
+                `;
+                div.onclick = () => selectEndAddress(address.id, div);
+                endList.appendChild(div);
+            });
+            
+            // 默认选中第一个地址
+            if (addresses.length > 0) {
+                selectStartAddress(addresses[0].id, startList.firstChild);
+                selectEndAddress(addresses[0].id, endList.firstChild);
+            }
+        }
+
+        // 选择起始地址
+        function selectStartAddress(addressId, element) {
+            selectedStartAddress = addressId;
+            
+            // 移除其他选中状态
+            document.querySelectorAll('#startAddressList .address-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            element.classList.add('selected');
+        }
+
+        // 选择送达地址
+        function selectEndAddress(addressId, element) {
+            selectedEndAddress = addressId;
+            
+            // 移除其他选中状态
+            document.querySelectorAll('#endAddressList .address-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            element.classList.add('selected');
+        }
+
+        // 创建订单
+        async function createOrder() {
+            if (!selectedStartAddress || !selectedEndAddress) {
+                showMessage('请选择起始地址和送达地址', 'error');
+                return;
+            }
+
+            const parentTypeId = document.getElementById('parentType').value;
+            const subType = document.getElementById('subType').value;
+            
+            if (!parentTypeId || !subType) {
+                showMessage('请选择服务类型和细分类型', 'error');
+                return;
+            }
+
+            // 获取选中的服务类型名称
+            const parentTypeSelect = document.getElementById('parentType');
+            const parentTypeName = parentTypeSelect.options[parentTypeSelect.selectedIndex].text;
+
+            const orderData = {
+                userId: currentUserId,
+                parentType: parentTypeName, // 使用服务类型名称
+                subType: subType,
+                startAddressId: selectedStartAddress,
+                endAddressId: selectedEndAddress,
+                goodsName: document.getElementById('goodsName').value,
+                fetchCode: document.getElementById('fetchCode').value,
+                remark: document.getElementById('remark').value,
+                orderPrice: parseFloat(document.getElementById('orderPrice').value),
+                goodsBudget: parseFloat(document.getElementById('goodsBudget').value),
+                payStatus: 0, // 未支付
+                orderStatus: 0  // 待接单
+            };
+
+            try {
+                const response = await fetch('/order/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    showMessage('订单创建成功！', 'success');
+                    // 重置表单
+                    document.getElementById('orderForm').reset();
+                    updateTotalPrice();
+                    
+                    // 重新加载订单列表
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="my-orders"]').click();
+                    }, 1500);
+                } else {
+                    showMessage('创建订单失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('创建订单出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 加载订单列表
+        async function loadOrders() {
+            const orderList = document.getElementById('orderList');
+            orderList.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`/order/user/${currentUserId}`);
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    const orders = result.data || [];
+                    
+                    if (orders.length === 0) {
+                        orderList.innerHTML = '<div class="loading">暂无订单</div>';
+                        return;
+                    }
+                    
+                    orderList.innerHTML = '';
+                    orders.forEach(order => {
+                        const orderElement = createOrderElement(order);
+                        orderList.appendChild(orderElement);
+                    });
+                } else {
+                    orderList.innerHTML = '<div class="loading">加载失败: ' + result.msg + '</div>';
+                }
+            } catch (error) {
+                console.error('加载订单出错:', error);
+                orderList.innerHTML = '<div class="loading">网络错误</div>';
+            }
+        }
+
+        // 创建订单项元素
+        function createOrderElement(order) {
+            const div = document.createElement('div');
+            div.className = 'order-item';
+            
+            const statusText = getOrderStatusText(order.orderStatus);
+            const statusClass = getOrderStatusClass(order.orderStatus);
+            
+            div.innerHTML = `
+                <div class="order-header">
+                    <span class="order-type">${order.parentType} - ${order.subType}</span>
+                    <span class="order-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="order-details">
+                    <div class="detail-item">
+                        <span class="detail-label">物品名称</span>
+                        <span class="detail-value">${order.goodsName || '无'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">跑腿费用</span>
+                        <span class="detail-value">¥${order.orderPrice || 0}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">预算金额</span>
+                        <span class="detail-value">¥${order.goodsBudget || 0}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">创建时间</span>
+                        <span class="detail-value">${formatDateTime(order.createTime)}</span>
+                    </div>
+                </div>
+                ${order.remark ? `<div style="margin-top: 10px;"><strong>备注:</strong> ${order.remark}</div>` : ''}
+                ${order.fetchCode ? `<div style="margin-top: 5px;"><strong>取件码:</strong> ${order.fetchCode}</div>` : ''}
+            `;
+            
+            return div;
+        }
+
+        // 获取订单状态文本
+        function getOrderStatusText(status) {
+            const statusMap = {
+                0: '待接单',
+                1: '已接单',
+                2: '配送中',
+                3: '已完成',
+                4: '已撤销'
+            };
+            return statusMap[status] || '未知状态';
+        }
+
+        // 获取订单状态样式类
+        function getOrderStatusClass(status) {
+            const classMap = {
+                0: 'status-pending',
+                1: 'status-accepted',
+                2: 'status-delivering',
+                3: 'status-completed',
+                4: 'status-cancelled'
+            };
+            return classMap[status] || '';
+        }
+
+        // 格式化日期时间
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return '未知时间';
+            
+            const date = new Date(dateTimeString);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 加载所有地址（地址管理页面）
+        async function loadAllAddresses() {
+            const addressList = document.getElementById('allAddressList');
+            addressList.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`/address/list/${currentUserId}`);
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    const addrList = result.data || [];
+                    
+                    if (addrList.length === 0) {
+                        addressList.innerHTML = '<div class="loading">暂无地址</div>';
+                        return;
+                    }
+                    
+                    addressList.innerHTML = '';
+                    addrList.forEach(address => {
+                        const div = document.createElement('div');
+                        div.className = 'address-item';
+                        div.style.borderBottom = '2px solid #f0f0f0';
+                        div.style.marginBottom = '10px';
+                        div.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong>${address.receiverName}</strong> ${address.receiverPhone}<br>
+                                    ${address.address} ${address.detailAddress || ''}<br>
+                                    <small>${address.isDefault === 1 ? '【默认地址】' : ''}</small>
+                                </div>
+                                <button class="btn btn-danger btn-small" onclick="deleteAddress(${address.id})">删除</button>
+                            </div>
+                        `;
+                        addressList.appendChild(div);
+                    });
+                } else {
+                    addressList.innerHTML = '<div class="loading">加载失败: ' + result.msg + '</div>';
+                }
+            } catch (error) {
+                console.error('加载地址出错:', error);
+                addressList.innerHTML = '<div class="loading">网络错误</div>';
+            }
+        }
+
+        // 删除地址
+        async function deleteAddress(addressId) {
+            if (!confirm('确定要删除这个地址吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/address/delete/${addressId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    showMessage('地址删除成功', 'success');
+                    loadAddresses();
+                    loadAllAddresses();
+                } else {
+                    showMessage('删除失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('删除地址出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 显示添加地址模态框
+        function showAddAddressModal() {
+            document.getElementById('addressModal').style.display = 'block';
+            document.getElementById('addressForm').reset();
+        }
+
+        // 关闭添加地址模态框
+        function closeAddressModal() {
+            document.getElementById('addressModal').style.display = 'none';
+        }
+
+        // 保存地址
+        async function saveAddress() {
+            const addressData = {
+                userId: currentUserId,
+                receiverName: document.getElementById('receiverName').value,
+                receiverPhone: document.getElementById('receiverPhone').value,
+                addressType: parseInt(document.getElementById('addressType').value),
+                address: document.getElementById('address').value,
+                detailAddress: document.getElementById('detailAddress').value,
+                floor: document.getElementById('floor').value ? parseInt(document.getElementById('floor').value) : null,
+                isDefault: document.getElementById('isDefault').checked ? 1 : 0
+            };
+
+            try {
+                const response = await fetch('/address/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(addressData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    showMessage('地址添加成功', 'success');
+                    closeAddressModal();
+                    loadAddresses();
+                    loadAllAddresses();
+                } else {
+                    showMessage('添加失败: ' + result.msg, 'error');
+                }
+            } catch (error) {
+                console.error('添加地址出错:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = 'message ' + type;
+            messageBox.style.display = 'block';
+            
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('addressModal');
+            if (event.target == modal) {
+                closeAddressModal();
+            }
+        }
+    </script>
+</body>
+</html>

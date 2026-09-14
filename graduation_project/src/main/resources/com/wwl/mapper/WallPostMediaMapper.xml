@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallPostMediaMapper">
+
+    <!-- 批量新增附件 -->
+    <insert id="batchInsert">
+        INSERT INTO wall_post_media(post_id,media_url,sort)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.postId},#{item.mediaUrl},#{item.sort})
+        </foreach>
+    </insert>
+
+    <!-- 查询帖子所有媒体地址 -->
+    <select id="selectMediaUrlByPostId" resultType="java.lang.String">
+        SELECT media_url FROM wall_post_media
+        WHERE post_id = #{postId}
+        ORDER BY sort ASC
+    </select>
+
+    <!-- 批量查询：根据帖子ID集合查询所有媒体记录（解决 N+1 问题） -->
+    <select id="selectMediaUrlByPostIdList" resultType="com.wwl.model.entity.WallPostMedia">
+        SELECT post_id, media_url, sort
+        FROM wall_post_media
+        WHERE post_id IN
+        <foreach collection="postIdList" item="pid" open="(" separator="," close=")">
+            #{pid}
+        </foreach>
+        ORDER BY post_id, sort ASC
+    </select>
+
+    <!-- 物理删除该帖子所有附件 -->
+    <delete id="deleteMediaByPostId">
+        DELETE FROM wall_post_media WHERE post_id = #{postId}
+    </delete>
+
+</mapper>

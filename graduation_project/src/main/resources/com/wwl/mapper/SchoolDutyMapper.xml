@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.SchoolDutyMapper">
+
+    <insert id="insertDuty">
+        INSERT INTO school_duty(duty_name,duty_desc)
+        VALUES(#{dutyName},#{dutyDesc})
+    </insert>
+
+    <select id="getDutyById" resultType="com.wwl.model.entity.SchoolDuty">
+        SELECT * FROM school_duty WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="getDutyList" resultType="com.wwl.model.entity.SchoolDuty">
+        SELECT * FROM school_duty WHERE is_deleted = 0 ORDER BY id ASC
+    </select>
+
+    <update id="updateDuty">
+        UPDATE school_duty
+        <set>
+            <if test="dutyName != null and dutyName != ''">duty_name = #{dutyName},</if>
+            <if test="dutyDesc != null and dutyDesc != ''">duty_desc = #{dutyDesc}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteDuty">
+        UPDATE school_duty SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getDutyByCondition" resultType="com.wwl.model.entity.SchoolDuty">
+        SELECT * FROM school_duty
+        <where>
+            AND is_deleted = 0
+            <if test="dutyName != null and dutyName != ''">
+                AND duty_name LIKE CONCAT('%',#{dutyName},'%')
+            </if>
+        </where>
+        ORDER BY id ASC
+    </select>
+
+</mapper>

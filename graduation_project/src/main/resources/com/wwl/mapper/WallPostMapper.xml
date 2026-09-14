@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.WallPostMapper">
+
+    <sql id="base_column">
+        wp.id,wp.post_no,wp.user_id,u.uid as userUid,wp.category_id,wp.sub_category_id,wp.nickname,wp.avatar,wp.is_anonymous,
+    wp.content,wp.view_count,wp.like_count,wp.collect_count,
+    wp.comment_count,wp.status,wp.is_top,wp.top_expire_time,wp.publish_time,wp.is_timing,
+    wp.is_deleted,wp.create_time,wp.update_time,
+    -- 琛ュ厖鍒嗙被鍚嶇О锛岀敤浜庢ā绯婃煡璇?
+    wc.name as category_name, wcs.name as sub_category_name
+    </sql>
+
+    <select id="selectPostList" resultType="com.wwl.model.entity.WallPost">
+        SELECT
+        <include refid="base_column"/>,
+        <!-- 瀹炴椂璁＄畻鐪熷疄缃《 瑕嗙洊瀹炰綋isTop -->
+        CASE
+        WHEN wp.is_top = 1 AND wp.top_expire_time &gt; NOW() THEN 1
+        ELSE 0
+        END AS isTop,
+        <!-- 瀹炴椂璁＄畻鐪熷疄鍙戝竷鐘舵€?瑕嗙洊瀹炰綋isTiming -->
+        CASE
+        WHEN wp.is_timing = 1 AND wp.publish_time &gt; NOW() THEN 1
+        ELSE 0
+        END AS isTiming,
+        <choose>
+            <when test="currentUserUid != null and currentUserUid != ''">
+                EXISTS(SELECT 1 FROM wall_post_action a WHERE a.post_no = wp.post_no AND a.user_uid = #{currentUserUid} AND a.action_type = 'LIKE') AS isLike,
+                EXISTS(SELECT 1 FROM wall_post_action a WHERE a.post_no = wp.post_no AND a.user_uid = #{currentUserUid} AND a.action_type = 'COLLECT') AS isCollect
+            </when>
+            <otherwise>
+                0 AS isLike,
+                0 AS isCollect
+            </otherwise>
+        </choose>
+        FROM wall_post wp
+        LEFT JOIN user u ON wp.user_id = u.id
+        LEFT JOIN wall_category wc ON wp.category_id = wc.id AND wc.is_deleted = 0
+        LEFT JOIN wall_category_sub wcs ON wp.sub_category_id = wcs.id AND wcs.is_deleted = 0
+        <where>
+            wp.is_deleted = 0
+            <!-- 鍙睍绀哄凡缁忓埌鍙戝竷鏃堕棿鐨勫笘瀛愶紙publish_time涓簄ull琛ㄧず绔嬪嵆鍙戝竷锛?-->
+            AND (wp.publish_time IS NULL OR wp.publish_time &lt;= NOW())
+
+            <if test="userId != null">AND wp.user_id = #{userId}</if>
+
+            <choose>
+                <when test="categoryIdList != null and categoryIdList.size() > 0">
+                    AND wp.category_id IN
+                    <foreach collection="categoryIdList" item="catId" open="(" separator="," close=")">
+                        #{catId}
+                    </foreach>
+                </when>
+                <when test="groupList != null and groupList.size() > 0">
+                    AND (
+                    <foreach collection="groupList" item="item" separator="OR">
+                        (wp.category_id = #{item.categoryId} AND wp.sub_category_id = #{item.subCategoryId})
+                    </foreach>
+                    )
+                </when>
+            </choose>
+
+            <if test="status != null">AND wp.status = #{status}</if>
+            <if test="isAnonymous != null">AND wp.is_anonymous = #{isAnonymous}</if>
+            <if test="keyword != null and keyword != ''">
+                <bind name="likeKey" value="'%' + keyword.trim() + '%'"/>
+                AND (
+                wp.content LIKE #{likeKey}
+                OR (wp.is_anonymous = 0 AND wp.nickname LIKE #{likeKey})
+                OR wc.name LIKE #{likeKey}
+                OR wcs.name LIKE #{likeKey}
+                )
+            </if>
+        </where>
+        <!-- 鐢ㄨ绠楀悗鐨勭湡瀹炵疆椤舵帓搴?-->
+        ORDER BY isTop DESC, COALESCE(wp.publish_time, wp.create_time) DESC, wp.create_time DESC
+    </select>
+
+
+
+
+    <select id="selectPostById" resultType="com.wwl.model.entity.WallPost">
+        SELECT <include refid="base_column"/>
+        FROM wall_post wp
+        LEFT JOIN user u ON wp.user_id = u.id
+        WHERE wp.id = #{id} AND wp.is_deleted = 0
+    </select>
+
+    <select id="selectIdByPostNo" resultType="java.lang.Long">
+        SELECT id
+        FROM wall_post
+        WHERE post_no = #{postNo} AND is_deleted = 0
+    </select>
+
+    <insert id="insertPost" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO wall_post
+        (post_no,user_id,category_id,sub_category_id,nickname,avatar,is_anonymous,
+        content,view_count,like_count,collect_count,
+        comment_count,status,is_top,top_expire_time,publish_time,is_timing,
+        is_deleted,create_time,update_time)
+        VALUES
+        (#{postNo},#{userId},#{categoryId},#{subCategoryId},#{nickname},#{avatar},#{isAnonymous},
+        #{content},#{viewCount},#{likeCount},#{collectCount},
+        #{commentCount},#{status},#{isTop},
+        <if test="isTop == 1">DATE_ADD(NOW(),INTERVAL #{topHour} HOUR)</if>
+        <if test="isTop != 1">NULL</if>,
+        #{publishTime},#{isTiming},
+        #{isDeleted},NOW(),NOW())
+    </insert>
+
+
+
+    <update id="updatePost">
+        UPDATE wall_post
+        <set>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="subCategoryId != null">sub_category_id = #{subCategoryId},</if>
+            <if test="isAnonymous != null">is_anonymous = #{isAnonymous},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <choose>
+                <when test="isTop != null and isTop == 1 and topHour != null">top_expire_time = DATE_ADD(NOW(), INTERVAL #{topHour} HOUR),</when>
+                <when test="isTop != null and isTop != 1">top_expire_time = NULL,</when>
+                <when test="topExpireTime != null">top_expire_time = #{topExpireTime},</when>
+            </choose>
+            <if test="isTiming != null">is_timing = #{isTiming},</if>
+            <choose>
+                <when test="isTiming != null and isTiming == 1 and publishTime != null">publish_time = #{publishTime},</when>
+                <when test="isTiming != null and isTiming != 1">publish_time = NULL,</when>
+                <when test="publishTime != null">publish_time = #{publishTime},</when>
+            </choose>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="collectCount != null">collect_count = #{collectCount},</if>
+            <if test="commentCount != null">comment_count = #{commentCount},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="logicDeletePost">
+        UPDATE wall_post SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="increaseViewCount">
+        UPDATE wall_post
+        SET view_count = IFNULL(view_count, 0) + 1, update_time = NOW()
+        WHERE post_no = #{postNo} AND is_deleted = 0
+    </update>
+
+    <update id="changeLikeCount">
+        UPDATE wall_post
+        SET like_count = GREATEST(IFNULL(like_count, 0) + #{delta}, 0), update_time = NOW()
+        WHERE post_no = #{postNo} AND is_deleted = 0
+    </update>
+
+    <update id="changeCollectCount">
+        UPDATE wall_post
+        SET collect_count = GREATEST(IFNULL(collect_count, 0) + #{delta}, 0), update_time = NOW()
+        WHERE post_no = #{postNo} AND is_deleted = 0
+    </update>
+
+    <update id="changeCommentCount">
+        UPDATE wall_post
+        SET comment_count = GREATEST(IFNULL(comment_count, 0) + #{delta}, 0), update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <insert id="insertAction">
+        INSERT IGNORE INTO wall_post_action(post_no, user_uid, action_type)
+        VALUES(#{postNo}, #{userUid}, #{actionType})
+    </insert>
+
+    <delete id="deleteAction">
+        DELETE FROM wall_post_action
+        WHERE post_no = #{postNo}
+          AND user_uid = #{userUid}
+          AND action_type = #{actionType}
+    </delete>
+
+    <!-- 缁熻鐢ㄦ埛褰撴棩鍙戝笘鏁?-->
+    <select id="countUserDayPost" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM wall_post
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        AND create_time >= #{dayStart}
+        AND create_time &lt;= #{dayEnd}
+    </select>
+
+    <!-- 鏍规嵁鐢ㄦ埛userID鏌ヨ鐢ㄦ埛鍙戝竷杩囩殑甯栧瓙鍒楄〃 -->
+    <select id="selectPostListByUserId" resultType="com.wwl.model.entity.WallPost">
+        SELECT
+        <include refid="base_column"/>
+        FROM wall_post wp
+        LEFT JOIN user u ON wp.user_id = u.id
+        LEFT JOIN wall_category wc ON wp.category_id = wc.id AND wc.is_deleted = 0
+        LEFT JOIN wall_category_sub wcs ON wp.sub_category_id = wcs.id AND wcs.is_deleted = 0
+        WHERE wp.user_id = #{userId}
+        AND wp.is_deleted = 0
+        ORDER BY wp.create_time DESC
+    </select>
+
+    <select id="selectUserPostStats" resultType="java.util.HashMap">
+        SELECT
+        COUNT(*) AS total,
+        COALESCE(SUM(view_count), 0) AS views,
+        COALESCE(SUM(like_count), 0) AS likes,
+        COALESCE(SUM(comment_count), 0) AS comments
+        FROM wall_post
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- AI 助手：多关键词 OR 搜索帖子 -->
+    <select id="selectByKeywords" resultType="com.wwl.model.entity.WallPost">
+        SELECT
+            <include refid="base_column"/>,
+            0 AS isTop,
+            0 AS isTiming,
+            0 AS isLike,
+            0 AS isCollect
+        FROM wall_post wp
+        LEFT JOIN user u ON wp.user_id = u.id
+        LEFT JOIN wall_category wc ON wp.category_id = wc.id AND wc.is_deleted = 0
+        LEFT JOIN wall_category_sub wcs ON wp.sub_category_id = wcs.id AND wcs.is_deleted = 0
+        WHERE wp.is_deleted = 0
+          AND (wp.publish_time IS NULL OR wp.publish_time &lt;= NOW())
+          AND (
+            <foreach collection="keywords" item="kw" separator=" OR ">
+                wp.content LIKE CONCAT('%', #{kw}, '%')
+                OR (wp.is_anonymous = 0 AND wp.nickname LIKE CONCAT('%', #{kw}, '%'))
+                OR wc.name LIKE CONCAT('%', #{kw}, '%')
+                OR wcs.name LIKE CONCAT('%', #{kw}, '%')
+            </foreach>
+          )
+        ORDER BY wp.create_time DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

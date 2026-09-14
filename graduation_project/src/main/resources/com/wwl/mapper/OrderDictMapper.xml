@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.OrderDictMapper">
+
+    <!-- 新增订单分类 -->
+    <insert id="insertDict">
+        INSERT INTO order_dict(parent_type,sub_type)
+        VALUES(#{parentType},#{subType})
+    </insert>
+
+    <!-- 根据id查询单条分类 -->
+    <select id="getDictById" resultType="com.wwl.model.entity.OrderDict">
+        SELECT * FROM order_dict WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 查询所有分类，前端下拉框使用 -->
+    <select id="listAllDict" resultType="com.wwl.model.entity.OrderDict">
+        SELECT * FROM order_dict WHERE is_deleted = 0
+    </select>
+
+    <!-- 修改分类信息 -->
+    <update id="updateDict">
+        UPDATE order_dict
+        <set>
+            <if test="parentType != null and parentType != ''">parent_type = #{parentType},</if>
+            <if test="subType != null and subType != ''">sub_type = #{subType}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除分类（软删除） -->
+    <update id="deleteDict">
+        UPDATE order_dict SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <!-- 多条件模糊查询分类 -->
+    <select id="getDictByCondition" resultType="com.wwl.model.entity.OrderDict">
+        SELECT * FROM order_dict
+        <where>
+            AND is_deleted = 0
+            <if test="parentType != null and parentType != ''">
+                AND parent_type LIKE CONCAT('%',#{parentType},'%')
+            </if>
+            <if test="subType != null and subType != ''">
+                AND sub_type LIKE CONCAT('%',#{subType},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

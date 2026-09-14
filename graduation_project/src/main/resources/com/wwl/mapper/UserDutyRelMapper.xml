@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wwl.mapper.UserDutyRelMapper">
+
+    <!-- 根据用户id查询所有绑定的职务id -->
+    <select id="getDutyIdByUserId" resultType="java.lang.Integer">
+        SELECT duty_id FROM user_duty_rel WHERE user_id = #{userId} AND is_deleted = 0
+    </select>
+
+    <!-- 根据用户id 查询 该用户所有职务中文名称 -->
+    <select id="getDutyNameByUserId" resultType="java.lang.String">
+        SELECT sd.duty_name
+        FROM user_duty_rel ur
+                 LEFT JOIN school_duty sd ON ur.duty_id = sd.id
+        WHERE ur.user_id = #{userId}
+        AND ur.is_deleted = 0
+        AND sd.is_deleted = 0
+    </select>
+
+
+    <!-- 新增关联关系 -->
+    <insert id="insert">
+        INSERT INTO user_duty_rel(user_id,duty_id)
+        VALUES(#{userId},#{dutyId})
+    </insert>
+
+    <!-- 删除用户单个职务关联（软删除） -->
+    <update id="deleteByUserAndDuty">
+        UPDATE user_duty_rel SET is_deleted = 1
+        WHERE user_id = #{userId} AND duty_id = #{dutyId}
+    </update>
+
+    <!-- 清空用户全部旧职务关联（软删除） -->
+    <update id="deleteAllByUserId">
+        UPDATE user_duty_rel SET is_deleted = 1 WHERE user_id = #{userId}
+    </update>
+
+</mapper>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.RiderOrderMapper">
+
+    <!-- 通用结果映射 -->
+    <resultMap id="BaseResultMap" type="com.wwl.model.entity.RiderOrder">
+        <id column="id" property="id"/>
+        <result column="rider_order_no" property="riderOrderNo"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="rider_user_id" property="riderUserId"/>
+        <result column="accept_time" property="acceptTime"/>
+        <result column="pick_time" property="pickTime"/>
+        <result column="deliver_time" property="deliverTime"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="rider_status" property="riderStatus"/>
+        <result column="service_fee" property="serviceFee"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="pre_delivery_status" property="preDeliveryStatus"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 新增骑手订单 -->
+    <insert id="insertRiderOrder">
+        INSERT INTO tb_rider_order
+        (rider_order_no,order_no,rider_user_id,accept_time,pick_time,deliver_time,
+         finish_time,rider_status,service_fee,cancel_reason,create_time,update_time,is_deleted)
+        VALUES
+            (#{riderOrderNo},#{orderNo},#{riderUserId},#{acceptTime},#{pickTime},#{deliverTime},
+             #{finishTime},#{riderStatus},#{serviceFee},#{cancelReason},#{createTime},#{updateTime},#{isDeleted})
+    </insert>
+
+    <!-- 骑手分页查询自己已接全部订单（联表骑手接单表+订单主表+地址） -->
+    <!-- 查询骑手已接单订单列表 -->
+    <select id="selectRiderSelfOrderPage" resultType="com.wwl.model.vo.RiderOwnOrderVO">
+        SELECT
+        oi.id,
+        oi.order_no,
+        oi.parent_type,
+        oi.sub_type,
+        oi.order_price,
+        oi.reward_price,
+        oi.goods_budget,
+        oi.remark,
+        oi.expect_time,
+        oi.fetch_code,
+        oi.order_status,
+        oi.cancel_reason AS cancelReason,
+        oi.create_time,
+        sa.address AS startAddressText,
+        ea.address AS endAddressText,
+        ro.accept_time,
+        ro.pick_time,
+        ro.deliver_time,
+        ro.finish_time,
+        ro.rider_status,
+        ro.service_fee,
+        ro.cancel_reason AS riderCancelReason
+        FROM order_info oi
+        INNER JOIN tb_rider_order ro ON oi.order_no = ro.order_no
+        LEFT JOIN user_address sa ON oi.start_address_id = sa.id
+        LEFT JOIN user_address ea ON oi.end_address_id = ea.id
+        WHERE
+        oi.is_deleted = 0
+        AND ro.is_deleted = 0
+        AND ro.rider_user_id = #{dto.riderUserId}
+        AND oi.order_status != 0
+        <if test="dto.orderStatus != null">
+            AND oi.order_status = #{dto.orderStatus}
+        </if>
+        <if test="dto.parentType != null and dto.parentType != ''">
+            AND oi.parent_type = #{dto.parentType}
+        </if>
+        <if test="dto.subType != null and dto.subType != ''">
+            AND oi.sub_type = #{dto.subType}
+        </if>
+        <!-- 动态排序，不传默认按下单时间倒序 -->
+        <choose>
+            <when test="dto.sortField != null and dto.sortField != '' and dto.sortOrder != null and dto.sortOrder != ''">
+                ORDER BY ${dto.sortField} ${dto.sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY ro.accept_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 更新订单 -->
+    <update id="updateRiderOrder">
+        UPDATE tb_rider_order
+        <set>
+            <if test="riderOrderNo != null">rider_order_no = #{riderOrderNo},</if>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="riderUserId != null">rider_user_id = #{riderUserId},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="pickTime != null">pick_time = #{pickTime},</if>
+            <if test="deliverTime != null">deliver_time = #{deliverTime},</if>
+            <if test="finishTime != null">finish_time = #{finishTime},</if>
+            <if test="riderStatus != null">rider_status = #{riderStatus},</if>
+            <if test="serviceFee != null">service_fee = #{serviceFee},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="preDeliveryStatus != null">pre_delivery_status = #{preDeliveryStatus},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted}</if>
+        </set>
+        WHERE order_no = #{orderNo}
+        AND is_deleted = 0
+    </update>
+
+<!--    统计骑手订单状态数量（使用订单主表的 order_status）-->
+    <select id="countAllStatus" resultType="com.wwl.model.vo.OrderCountVO">
+        SELECT
+            COUNT(IF(oi.order_status=1,1,null)) received,
+            COUNT(IF(oi.order_status=2,1,null)) delivering,
+            COUNT(IF(oi.order_status=3,1,null)) finished,
+            COUNT(IF(oi.order_status=4,1,null)) dispute,
+            COUNT(IF(oi.order_status=5,1,null)) complete,
+            COUNT(IF(oi.order_status=6,1,null)) cancel
+        FROM tb_rider_order ro
+        INNER JOIN order_info oi ON ro.order_no = oi.order_no
+        WHERE ro.rider_user_id = #{riderUserId}
+          AND ro.is_deleted = 0
+          AND oi.is_deleted = 0
+    </select>
+
+<!--    统计骑手纠纷中订单数量-->
+    <select id="countDisputeByRiderUserId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM tb_rider_order
+        WHERE rider_user_id = #{riderUserId} AND rider_status = 4
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM tb_rider_order
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 根据订单号查询骑手订单 -->
+    <select id="selectByOrderNo" resultMap="BaseResultMap">
+        SELECT * FROM tb_rider_order
+        WHERE order_no = #{orderNo} AND is_deleted = 0
+    </select>
+
+    <!-- 根据骑手ID查询列表 -->
+    <select id="selectListByRiderId" resultMap="BaseResultMap">
+        SELECT * FROM tb_rider_order
+        WHERE rider_user_id = #{riderId} AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据主订单ID查询 -->
+    <select id="selectByOrderId" resultMap="BaseResultMap">
+        SELECT * FROM tb_rider_order
+        WHERE order_no = #{orderId} AND is_deleted = 0
+    </select>
+
+
+
+    <!-- 逻辑删除 -->
+    <update id="deleteLogicById">
+        UPDATE tb_rider_order SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

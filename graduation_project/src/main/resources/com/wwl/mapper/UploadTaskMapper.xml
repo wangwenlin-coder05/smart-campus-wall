@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwl.mapper.UploadTaskMapper">
+
+    <!-- 新增上传任务 -->
+    <insert id="insertUploadTask" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO upload_task
+        (upload_id, file_name, file_size, content_type, object_key, user_uid,
+         status, checkpoint, uploaded_parts, total_parts, is_deleted,
+         create_time, update_time, expire_time)
+        VALUES
+        (#{uploadId}, #{fileName}, #{fileSize}, #{contentType}, #{objectKey}, #{userUid},
+         #{status}, #{checkpoint}, #{uploadedParts}, #{totalParts}, 0,
+         NOW(), NOW(), #{expireTime})
+    </insert>
+
+    <!-- 根据uploadId查询上传任务 -->
+    <select id="selectByUploadId" resultType="com.wwl.model.entity.UploadTask">
+        SELECT *
+        FROM upload_task
+        WHERE upload_id = #{uploadId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 根据用户ID和状态查询未完成的上传任务 -->
+    <select id="selectUnfinishedTasks" resultType="com.wwl.model.entity.UploadTask">
+        SELECT *
+        FROM upload_task
+        WHERE user_uid = #{userUid}
+          AND is_deleted = 0
+          AND status IN
+        <foreach collection="statusList" item="status" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 更新上传进度（checkpoint） -->
+    <update id="updateCheckpoint">
+        UPDATE upload_task
+        SET checkpoint = #{checkpoint},
+            uploaded_parts = #{uploadedParts},
+            update_time = NOW()
+        WHERE upload_id = #{uploadId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 更新任务状态 -->
+    <update id="updateStatus">
+        UPDATE upload_task
+        SET status = #{status},
+            update_time = NOW()
+        WHERE upload_id = #{uploadId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 逻辑删除上传任务 -->
+    <update id="deleteUploadTask">
+        UPDATE upload_task
+        SET is_deleted = 1,
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 清理过期的未完成上传任务 -->
+    <update id="cleanExpiredTasks">
+        UPDATE upload_task
+        SET is_deleted = 1,
+            update_time = NOW()
+        WHERE status IN (0, 1, 4)
+          AND expire_time &lt; NOW()
+          AND is_deleted = 0
+    </update>
+
+</mapper>

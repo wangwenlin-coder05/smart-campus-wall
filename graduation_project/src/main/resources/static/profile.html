@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .profile-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input[readonly] {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .info-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #667eea;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 3px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 个人信息管理</h1>
+            <p>查看和编辑您的个人资料</p>
+        </div>
+
+        <div class="content">
+            <!-- UID搜索区域 -->
+            <div class="profile-card">
+                <h3 style="margin-bottom: 15px; color: #667eea;">🔍 查找用户</h3>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="searchUid" placeholder="请输入UID查询个人信息" 
+                           style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <button class="btn btn-primary" onclick="loadProfile()">查询</button>
+                </div>
+            </div>
+
+            <!-- 个人信息显示/编辑区域 -->
+            <div id="profileSection" style="display: none;">
+                <div class="section-title">📋 基本信息</div>
+                <div class="profile-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uid">UID *</label>
+                            <input type="text" id="uid" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">手机号 *</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">昵称</label>
+                            <input type="text" id="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="realName">真实姓名</label>
+                            <input type="text" id="realName">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender">性别</label>
+                            <select id="gender">
+                                <option value="0">未知</option>
+                                <option value="1">男</option>
+                                <option value="2">女</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="birthday">生日</label>
+                            <input type="date" id="birthday">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="role">角色</label>
+                            <select id="role">
+                                <option value="0">普通用户</option>
+                                <option value="1">管理员</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">状态</label>
+                            <select id="status">
+                                <option value="1">正常</option>
+                                <option value="0">禁用</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">🎓 学校信息</div>
+                <div class="profile-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="studentId">学号</label>
+                            <input type="text" id="studentId">
+                        </div>
+                        <div class="form-group">
+                            <label for="idCard">身份证号</label>
+                            <input type="text" id="idCard">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="college">学院</label>
+                            <input type="text" id="college">
+                        </div>
+                        <div class="form-group">
+                            <label for="major">专业</label>
+                            <input type="text" id="major">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="className">班级</label>
+                            <input type="text" id="className">
+                        </div>
+                        <div class="form-group">
+                            <label for="dormitory">宿舍</label>
+                            <input type="text" id="dormitory">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">📞 联系方式</div>
+                <div class="profile-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="qq">QQ号</label>
+                            <input type="text" id="qq">
+                        </div>
+                        <div class="form-group">
+                            <label for="wechat">微信号</label>
+                            <input type="text" id="wechat">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="avatar">头像URL</label>
+                        <input type="url" id="avatar" onchange="previewAvatar()">
+                        <img id="avatarPreview" class="avatar-preview" style="display: none;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hobby">爱好</label>
+                        <textarea id="hobby" rows="3" placeholder="多个爱好用逗号分隔"></textarea>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="saveProfile()">💾 保存修改</button>
+                    <button class="btn btn-warning" onclick="resetForm()">🔄 重置表单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/user';
+        let currentUserId = null;
+        let originalData = null;
+
+        // 加载个人信息
+        async function loadProfile() {
+            const uid = document.getElementById('searchUid').value.trim();
+            
+            if (!uid) {
+                showMessage('请输入UID', 'error');
+                return;
+            }
+
+            try {
+                // 使用条件查询接口获取用户信息
+                const response = await fetch(`${API_BASE}/condition`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: uid })
+                });
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    const users = result.data;
+                    if (!users || users.length === 0) {
+                        showMessage('未找到该用户', 'error');
+                        return;
+                    }
+                    
+                    const user = users[0];
+                    currentUserId = user.id;
+                    originalData = { ...user };
+                    
+                    // 填充表单
+                    document.getElementById('uid').value = user.uid || '';
+                    document.getElementById('phone').value = user.phone || '';
+                    document.getElementById('username').value = user.username || '';
+                    document.getElementById('realName').value = user.realName || '';
+                    document.getElementById('gender').value = user.gender || 0;
+                    document.getElementById('birthday').value = user.birthday || '';
+                    document.getElementById('role').value = user.role || 0;
+                    document.getElementById('status').value = user.status !== undefined ? user.status : 1;
+                    document.getElementById('studentId').value = user.studentId || '';
+                    document.getElementById('idCard').value = user.idCard || '';
+                    document.getElementById('college').value = user.college || '';
+                    document.getElementById('major').value = user.major || '';
+                    document.getElementById('className').value = user.className || '';
+                    document.getElementById('dormitory').value = user.dormitory || '';
+                    document.getElementById('qq').value = user.qq || '';
+                    document.getElementById('wechat').value = user.wechat || '';
+                    document.getElementById('avatar').value = user.avatar || '';
+                    document.getElementById('hobby').value = user.hobby || '';
+                    
+                    // 显示头像预览
+                    if (user.avatar) {
+                        previewAvatar();
+                    }
+                    
+                    // 显示个人信息区域
+                    document.getElementById('profileSection').style.display = 'block';
+                    showMessage('加载成功', 'success');
+                } else {
+                    showMessage('查询失败：' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('加载个人信息失败:', error);
+                showMessage('网络请求失败', 'error');
+            }
+        }
+
+        // 保存个人信息
+        async function saveProfile() {
+            if (!currentUserId) {
+                showMessage('请先查询用户', 'error');
+                return;
+            }
+
+            const userData = {
+                id: currentUserId,
+                uid: document.getElementById('uid').value,
+                phone: document.getElementById('phone').value,
+                username: document.getElementById('username').value,
+                realName: document.getElementById('realName').value,
+                gender: parseInt(document.getElementById('gender').value),
+                birthday: document.getElementById('birthday').value,
+                role: parseInt(document.getElementById('role').value),
+                status: parseInt(document.getElementById('status').value),
+                studentId: document.getElementById('studentId').value,
+                idCard: document.getElementById('idCard').value,
+                college: document.getElementById('college').value,
+                major: document.getElementById('major').value,
+                className: document.getElementById('className').value,
+                dormitory: document.getElementById('dormitory').value,
+                qq: document.getElementById('qq').value,
+                wechat: document.getElementById('wechat').value,
+                avatar: document.getElementById('avatar').value,
+                hobby: document.getElementById('hobby').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/update`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const result = await response.json();
+                
+                if (result.code === 1) {
+                    showMessage('保存成功', 'success');
+                    originalData = { ...userData };
+                } else {
+                    showMessage('保存失败：' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                showMessage('网络请求失败', 'error');
+            }
+        }
+
+        // 重置表单
+        function resetForm() {
+            if (!originalData) {
+                return;
+            }
+
+            document.getElementById('phone').value = originalData.phone || '';
+            document.getElementById('username').value = originalData.username || '';
+            document.getElementById('realName').value = originalData.realName || '';
+            document.getElementById('gender').value = originalData.gender || 0;
+            document.getElementById('birthday').value = originalData.birthday || '';
+            document.getElementById('role').value = originalData.role || 0;
+            document.getElementById('status').value = originalData.status !== undefined ? originalData.status : 1;
+            document.getElementById('studentId').value = originalData.studentId || '';
+            document.getElementById('idCard').value = originalData.idCard || '';
+            document.getElementById('college').value = originalData.college || '';
+            document.getElementById('major').value = originalData.major || '';
+            document.getElementById('className').value = originalData.className || '';
+            document.getElementById('dormitory').value = originalData.dormitory || '';
+            document.getElementById('qq').value = originalData.qq || '';
+            document.getElementById('wechat').value = originalData.wechat || '';
+            document.getElementById('avatar').value = originalData.avatar || '';
+            document.getElementById('hobby').value = originalData.hobby || '';
+            
+            if (originalData.avatar) {
+                previewAvatar();
+            }
+            
+            showMessage('已重置为原始数据', 'success');
+        }
+
+        // 预览头像
+        function previewAvatar() {
+            const url = document.getElementById('avatar').value;
+            const img = document.getElementById('avatarPreview');
+            
+            if (url) {
+                img.src = url;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type) {
+            const div = document.createElement('div');
+            div.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                z-index: 9999;
+                animation: slideIn 0.3s;
+                background: ${type === 'success' ? 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' : 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)'};
+            `;
+            div.textContent = message;
+            document.body.appendChild(div);
+
+            setTimeout(() => {
+                div.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
